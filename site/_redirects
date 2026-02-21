@@ -1,0 +1,3 @@
+# Cloudflare Pages redirects
+# Redirect any bare /index to root
+/index /  301
