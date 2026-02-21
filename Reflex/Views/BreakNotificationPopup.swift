@@ -12,6 +12,15 @@ class BreakNotificationPopupController: ObservableObject {
     @Published var minutesAtHighLoad: Int = 0
     @Published var countdownSeconds: Int = 30
 
+    /// The mode determines the visual content of the popup
+    var mode: PopupMode = .breakReminder
+
+    enum PopupMode {
+        case breakReminder
+        case eyeRest
+        case timedBreak(minutesFocused: Int)
+    }
+
     private let popupWidth: CGFloat = 320
     private let popupHeight: CGFloat = 200
 
@@ -129,22 +138,27 @@ class BreakNotificationPopupController: ObservableObject {
 struct BreakNotificationPopupView: View {
     @ObservedObject var controller: BreakNotificationPopupController
 
+    private var isEyeRest: Bool {
+        if case .eyeRest = controller.mode { return true }
+        return false
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             // Header
             HStack(spacing: 10) {
-                Image(systemName: "leaf.fill")
+                Image(systemName: headerIcon)
                     .font(.title2)
                     .foregroundStyle(
                         LinearGradient(
-                            colors: [.green, .mint],
+                            colors: headerGradientColors,
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
                     )
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Time for a Break")
+                    Text(headerTitle)
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundColor(.white)
                     Text(breakSubtitle)
@@ -172,34 +186,12 @@ struct BreakNotificationPopupView: View {
             Divider()
                 .background(Color.white.opacity(0.1))
 
-            // Action buttons
-            VStack(spacing: 6) {
-                // Duration choices (start break with chosen duration)
-                HStack(spacing: 6) {
-                    durationButton(minutes: 2)
-                    durationButton(minutes: 5)
-                    durationButton(minutes: 10)
-                }
-
-                // Snooze & skip row
-                HStack(spacing: 6) {
-                    snoozeButton(minutes: 1, label: "+1 min")
-                    snoozeButton(minutes: 5, label: "+5 min")
-                    snoozeButton(minutes: 10, label: "+10 min")
-
-                    Button(action: {
-                        NotificationCenter.default.post(name: .skipBreak, object: nil)
-                    }) {
-                        Text("Skip")
-                            .font(.system(size: 11, weight: .medium))
-                            .frame(maxWidth: .infinity, minHeight: 28)
-                    }
-                    .buttonStyle(.bordered)
-                    .tint(.white.opacity(0.25))
-                }
+            // Action buttons — different for eye rest vs break
+            if isEyeRest {
+                eyeRestButtons
+            } else {
+                breakButtons
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
         }
         .background(
             RoundedRectangle(cornerRadius: ReflexConstants.cardCornerRadius)
@@ -213,11 +205,110 @@ struct BreakNotificationPopupView: View {
         .clipShape(RoundedRectangle(cornerRadius: ReflexConstants.cardCornerRadius))
     }
 
-    private var breakSubtitle: String {
-        if controller.minutesAtHighLoad > 0 {
-            return "\(controller.minutesAtHighLoad) min under high load"
+    // MARK: - Mode-specific content
+
+    private var headerIcon: String {
+        switch controller.mode {
+        case .eyeRest: return "eye.fill"
+        case .timedBreak: return "clock.fill"
+        case .breakReminder: return "leaf.fill"
         }
-        return "Your mind deserves a pause"
+    }
+
+    private var headerGradientColors: [Color] {
+        switch controller.mode {
+        case .eyeRest: return [.blue, .cyan]
+        case .timedBreak: return [.orange, .yellow]
+        case .breakReminder: return [.green, .mint]
+        }
+    }
+
+    private var headerTitle: String {
+        switch controller.mode {
+        case .eyeRest: return "Rest Your Eyes"
+        case .timedBreak: return "Time for a Break"
+        case .breakReminder: return "Time for a Break"
+        }
+    }
+
+    private var breakSubtitle: String {
+        switch controller.mode {
+        case .eyeRest:
+            return "Look at something 20 feet away"
+        case .timedBreak(let minutes):
+            return "\(minutes) min of continuous focus"
+        case .breakReminder:
+            if controller.minutesAtHighLoad > 0 {
+                return "\(controller.minutesAtHighLoad) min under high load"
+            }
+            return "Your mind deserves a pause"
+        }
+    }
+
+    // MARK: - Eye Rest Buttons
+
+    private var eyeRestButtons: some View {
+        VStack(spacing: 6) {
+            HStack(spacing: 6) {
+                Button(action: {
+                    NotificationCenter.default.post(name: .startEyeRest, object: nil)
+                }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "eye.fill")
+                            .font(.system(size: 10))
+                        Text("Start (20s)")
+                    }
+                    .font(.system(size: 12, weight: .semibold))
+                    .frame(maxWidth: .infinity, minHeight: 32)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.blue)
+
+                Button(action: {
+                    NotificationCenter.default.post(name: .skipEyeRest, object: nil)
+                }) {
+                    Text("Skip")
+                        .font(.system(size: 11, weight: .medium))
+                        .frame(maxWidth: .infinity, minHeight: 28)
+                }
+                .buttonStyle(.bordered)
+                .tint(.white.opacity(0.25))
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+    }
+
+    // MARK: - Break Buttons
+
+    private var breakButtons: some View {
+        VStack(spacing: 6) {
+            // Duration choices (start break with chosen duration)
+            HStack(spacing: 6) {
+                durationButton(minutes: 2)
+                durationButton(minutes: 5)
+                durationButton(minutes: 10)
+            }
+
+            // Snooze & skip row
+            HStack(spacing: 6) {
+                snoozeButton(minutes: 1, label: "+1 min")
+                snoozeButton(minutes: 5, label: "+5 min")
+                snoozeButton(minutes: 10, label: "+10 min")
+
+                Button(action: {
+                    NotificationCenter.default.post(name: .skipBreak, object: nil)
+                }) {
+                    Text("Skip")
+                        .font(.system(size: 11, weight: .medium))
+                        .frame(maxWidth: .infinity, minHeight: 28)
+                }
+                .buttonStyle(.bordered)
+                .tint(.white.opacity(0.25))
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
     }
 
     private func durationButton(minutes: Int) -> some View {

@@ -16,8 +16,14 @@ Reflex is a native macOS menu bar app that passively monitors your typing patter
 - **Menu bar monitor** — always-visible score with quick status popover
 - **Glassmorphic dashboard** — session history, insights, and metric trends
 - **Smart break system** — DeskRest-style cursor follower, notification popup, and fullscreen overlay with breathing exercises
+- **Time-based break reminders** — triggers after continuous focus (default 25 min), regardless of cognitive load score
+- **Eye rest reminders (20-20-20 rule)** — full-screen overlay every 40 min prompting a 20-second eye break with cursor-following countdown, skippable
+- **Fatigue-aware scoring** — cognitive load score naturally increases with sustained work duration (30+ min), ensuring breaks are recommended even during steady "flow" sessions
+- **Natural break detection** — automatically credits idle periods (2+ min) as micro-breaks, resetting break timers
 - **Context switch tracking** — app switches, desktop/space switches, and window title changes
 - **Personal baseline calibration** — learns your normal patterns in 15 minutes
+- **Hydration reminders** — optional gentle system notification to drink water (configurable interval)
+- **Smart escalation** — tracks consecutive skipped breaks for more insistent reminders
 - **100% local** — no data leaves your Mac, ever
 
 ## What It Measures
@@ -30,6 +36,7 @@ Reflex is a native macOS menu bar app that passively monitors your typing patter
 | Mouse jitter | Physical tension — shaky movement = stress |
 | Scroll behavior | Scanning vs reading — rapid reversals = searching |
 | Context switches | Focus fragmentation — rapid switching = overload |
+| Continuous focus duration | Fatigue factor — longer sessions = higher baseline load |
 
 ## Installation
 
@@ -52,18 +59,29 @@ Load Score = Typing Variance (25%)
            + Mouse Jitter (15%)
            + Pause Frequency (10%)
            + Scroll Chaos (10%)
+           + Fatigue Factor (up to +25 bonus after 30+ min)
 ```
 
 Scores are smoothed with an exponential moving average and calibrated against your personal baseline (established during the first 15 minutes of use).
 
 ### Break System
 
-When you've been under high cognitive load for too long, Reflex:
+Reflex uses **three independent break triggers**:
 
-1. Shows a small **cursor-following countdown** ring
+1. **Cognitive load-based** — when accumulated high-load time reaches 5+ minutes in a 30-minute window
+2. **Time-based** — after 25 minutes of continuous activity (configurable: 20–60 min), regardless of load score
+3. **Eye rest** — every 40 minutes of focus (configurable: 20–60 min), a quick 20-second eye break
+
+When a break is triggered, Reflex:
+
+1. Shows a small **cursor-following countdown** ring (15–30s)
 2. Pops up a **notification card** with Start/Snooze/Skip options
 3. If you start a break: displays a **fullscreen overlay** with a breathing exercise (4-4-4 cycle) and countdown timer
 4. If you skip: shows a gentle "We understand" message (click anywhere to dismiss)
+
+**Eye rest** follows the same flow but shows a 20-second "Give Rest to Your Eyes" overlay instead.
+
+Natural breaks (2+ minutes of no input) are automatically detected and credited, resetting all break timers.
 
 Break durations are configurable (2, 5, or 10 minutes). Breathing exercises can be toggled off.
 

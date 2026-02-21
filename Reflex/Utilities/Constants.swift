@@ -30,6 +30,24 @@ enum ReflexConstants {
     // MARK: - Baseline
     static let baselineCalibrationDuration: TimeInterval = 900
 
+    // MARK: - Time-Based Breaks
+    static let defaultFocusBreakIntervalMinutes = 25
+    static let naturalBreakThreshold: TimeInterval = 120 // 2 min no input = natural break
+    static let activityCheckInterval: TimeInterval = 30
+
+    // MARK: - Fatigue Factor
+    static let fatigueOnsetMinutes: Double = 30
+    static let fatigueMaxBonus: Double = 25
+    static let fatiguePeakMinutes: Double = 120
+
+    // MARK: - Eye Rest (20-20-20 Rule)
+    static let eyeRestDefaultIntervalMinutes = 40
+    static let eyeRestDuration: TimeInterval = 20
+    static let eyeRestPreCountdown: Int = 15
+
+    // MARK: - Hydration
+    static let hydrationDefaultIntervalMinutes = 60
+
     // MARK: - UI
     static let menuBarPopoverWidth: CGFloat = 340
     static let menuBarPopoverHeight: CGFloat = 560

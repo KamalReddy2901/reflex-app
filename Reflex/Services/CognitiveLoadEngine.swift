@@ -11,9 +11,18 @@ class CognitiveLoadEngine: ObservableObject {
     @Published var isCalibrating: Bool = true
     @Published var minutesAtHighLoad: Int = 0
 
+    /// Tracks the last time any user input (keystroke/mouse) was detected.
+    @Published var lastInputTime: Date = .now
+    /// Minutes of continuous activity since last break/idle.
+    @Published var continuousActiveMinutes: Int = 0
+    /// Accumulated minutes at high load within a sliding window.
+    @Published var accumulatedHighLoadMinutes: Int = 0
+
     /// Tracks whether a break reminder has already been triggered for the
     /// current high-load period, preventing repeated reminders.
     var hasTriggeredBreak: Bool = false
+    /// Whether a time-based break has been triggered for this focus period.
+    var hasTriggeredTimedBreak: Bool = false
 
     /// Sensitivity multiplier (0.0 = low sensitivity, 1.0 = high sensitivity).
     /// Applied to the raw score to make load detection more/less aggressive.
@@ -28,6 +37,8 @@ class CognitiveLoadEngine: ObservableObject {
     private var baseline: BehaviorBaseline?
     private var calibrationStart: Date = .now
     private var calibrationSamples: [BehaviorSnapshot] = []
+    private var lastBreakOrIdleTime: Date = .now
+    private var highLoadTimestamps: [Date] = [] // sliding window for accumulated tracking
 
     struct BehaviorBaseline: Codable {
         var typingIntervalMean: Double
@@ -71,8 +82,12 @@ class CognitiveLoadEngine: ObservableObject {
 
         let rawScore = computeHeuristicScore(snapshot: snapshot)
 
+        // Add fatigue factor based on continuous activity duration
+        let fatigueBonus = computeFatigueFactor()
+        let adjustedScore = min(100, rawScore + Int(fatigueBonus))
+
         // Exponential moving average for smoothing
-        smoothedScore = smoothedScore * (1 - ReflexConstants.emaAlpha) + Double(rawScore) * ReflexConstants.emaAlpha
+        smoothedScore = smoothedScore * (1 - ReflexConstants.emaAlpha) + Double(adjustedScore) * ReflexConstants.emaAlpha
         currentScore = Int(smoothedScore.rounded())
         loadLevel = CognitiveLoadLevel.from(score: currentScore)
         suggestion = generateSuggestion()
@@ -86,6 +101,7 @@ class CognitiveLoadEngine: ObservableObject {
         loadHistory.removeAll { $0.timestamp < oneHourAgo }
 
         trackHighLoad()
+        updateActivityTracking()
     }
 
     private func computeHeuristicScore(snapshot: BehaviorSnapshot) -> Int {
@@ -153,21 +169,90 @@ class CognitiveLoadEngine: ObservableObject {
     }
 
     private func trackHighLoad() {
+        let now = Date.now
+
+        // Track continuous high load (existing behavior, but also track accumulated)
         if currentScore >= ReflexConstants.highLoadThreshold {
             if highLoadStart == nil {
-                highLoadStart = .now
+                highLoadStart = now
             }
-            minutesAtHighLoad = Int(Date.now.timeIntervalSince(highLoadStart!) / 60)
+            minutesAtHighLoad = Int(now.timeIntervalSince(highLoadStart!) / 60)
+
+            // Add to accumulated high-load timestamps (sliding window)
+            highLoadTimestamps.append(now)
         } else {
             highLoadStart = nil
             minutesAtHighLoad = 0
         }
+
+        // Clean sliding window: keep only last 30 minutes of high-load timestamps
+        let thirtyMinAgo = now.addingTimeInterval(-1800)
+        highLoadTimestamps.removeAll { $0 < thirtyMinAgo }
+
+        // Accumulated high load = number of 5-second samples * 5 / 60 (in minutes)
+        accumulatedHighLoadMinutes = Int(Double(highLoadTimestamps.count) * ReflexConstants.loadSampleInterval / 60.0)
+    }
+
+    /// Computes a fatigue bonus based on how long the user has been continuously active.
+    /// Gradually increases score after 30 min, peaks at 2 hours.
+    private func computeFatigueFactor() -> Double {
+        let activeMinutes = Double(continuousActiveMinutes)
+        guard activeMinutes > ReflexConstants.fatigueOnsetMinutes else { return 0 }
+
+        let fatigueProgress = min(1.0,
+            (activeMinutes - ReflexConstants.fatigueOnsetMinutes) /
+            (ReflexConstants.fatiguePeakMinutes - ReflexConstants.fatigueOnsetMinutes)
+        )
+        // Ease-in curve for natural progression
+        return ReflexConstants.fatigueMaxBonus * fatigueProgress * fatigueProgress
+    }
+
+    /// Updates continuous activity tracking. Detects natural breaks (idle > 2 min).
+    private func updateActivityTracking() {
+        let now = Date.now
+        let idleDuration = now.timeIntervalSince(lastInputTime)
+
+        if idleDuration >= ReflexConstants.naturalBreakThreshold {
+            // User has been idle for 2+ minutes — this counts as a natural break
+            if continuousActiveMinutes > 0 {
+                lastBreakOrIdleTime = now
+                continuousActiveMinutes = 0
+                hasTriggeredTimedBreak = false
+                hasTriggeredBreak = false
+            }
+        } else {
+            // User is active — update continuous focus duration
+            continuousActiveMinutes = Int(now.timeIntervalSince(lastBreakOrIdleTime) / 60)
+        }
+    }
+
+    /// Called by input event handlers to update activity timestamp.
+    func recordActivity() {
+        lastInputTime = .now
+    }
+
+    /// Called when user takes an explicit break.
+    func recordBreakTaken() {
+        lastBreakOrIdleTime = .now
+        continuousActiveMinutes = 0
+        hasTriggeredTimedBreak = false
+        hasTriggeredBreak = false
+        highLoadTimestamps.removeAll()
     }
 
     private func generateSuggestion() -> String {
         if isCalibrating {
             let remaining = Int((ReflexConstants.baselineCalibrationDuration - Date.now.timeIntervalSince(calibrationStart)) / 60)
             return "Calibrating your baseline... \(max(0, remaining)) min remaining"
+        }
+
+        // Duration-based warnings take priority
+        if continuousActiveMinutes >= 120 {
+            return "⚠️ \(continuousActiveMinutes) min of continuous focus! Your brain and eyes need rest. Take a proper break."
+        } else if continuousActiveMinutes >= 60 {
+            return "🔴 You've been focused for over an hour. A break will sharpen your thinking."
+        } else if continuousActiveMinutes >= 40 {
+            return "🟠 \(continuousActiveMinutes) min of sustained focus. Consider a short break soon."
         }
 
         if minutesAtHighLoad >= 20 {
@@ -261,6 +346,13 @@ class CognitiveLoadEngine: ObservableObject {
         loadHistory.removeAll()
         highLoadStart = nil
         minutesAtHighLoad = 0
+        accumulatedHighLoadMinutes = 0
+        continuousActiveMinutes = 0
+        lastInputTime = .now
+        lastBreakOrIdleTime = .now
+        highLoadTimestamps.removeAll()
+        hasTriggeredBreak = false
+        hasTriggeredTimedBreak = false
         baseline = nil
         isCalibrating = true
         calibrationStart = .now

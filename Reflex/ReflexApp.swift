@@ -18,6 +18,11 @@ struct ReflexApp: App {
     @AppStorage("breathingExerciseEnabled") private var breathingExerciseEnabled = true
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @AppStorage("sensitivityLevel") private var sensitivityLevel = 0.5
+    @AppStorage("eyeRestEnabled") private var eyeRestEnabled = true
+    @AppStorage("eyeRestIntervalMinutes") private var eyeRestIntervalMinutes = ReflexConstants.eyeRestDefaultIntervalMinutes
+    @AppStorage("focusBreakIntervalMinutes") private var focusBreakIntervalMinutes = ReflexConstants.defaultFocusBreakIntervalMinutes
+    @AppStorage("hydrationReminderEnabled") private var hydrationReminderEnabled = false
+    @AppStorage("hydrationIntervalMinutes") private var hydrationIntervalMinutes = ReflexConstants.hydrationDefaultIntervalMinutes
 
     @State private var loadEngine: CognitiveLoadEngine?
     @State private var isInitialized = false
@@ -108,27 +113,31 @@ struct ReflexApp: App {
         engine.sensitivityMultiplier = sensitivityLevel
 
         // Wire event monitor to analyzers
-        eventMonitor.onKeyDown = { [weak keystrokeAnalyzer] time in
+        eventMonitor.onKeyDown = { [weak keystrokeAnalyzer, weak engine] time in
             Task { @MainActor in
                 keystrokeAnalyzer?.recordKeystroke(at: time)
+                engine?.recordActivity()
             }
         }
 
-        eventMonitor.onBackspace = { [weak keystrokeAnalyzer] time in
+        eventMonitor.onBackspace = { [weak keystrokeAnalyzer, weak engine] time in
             Task { @MainActor in
                 keystrokeAnalyzer?.recordBackspace(at: time)
+                engine?.recordActivity()
             }
         }
 
-        eventMonitor.onMouseMoved = { [weak mouseAnalyzer] position, time in
+        eventMonitor.onMouseMoved = { [weak mouseAnalyzer, weak engine] position, time in
             Task { @MainActor in
                 mouseAnalyzer?.recordMouseMove(position: position, at: time)
+                engine?.recordActivity()
             }
         }
 
-        eventMonitor.onScrollWheel = { [weak mouseAnalyzer] dx, dy, time in
+        eventMonitor.onScrollWheel = { [weak mouseAnalyzer, weak engine] dx, dy, time in
             Task { @MainActor in
                 mouseAnalyzer?.recordScroll(deltaX: dx, deltaY: dy, at: time)
+                engine?.recordActivity()
             }
         }
 
@@ -179,6 +188,7 @@ struct ReflexApp: App {
             let durationMinutes = notification.userInfo?["durationMinutes"] as? Int
             Task { @MainActor in
                 breakService.startBreak(durationMinutes: durationMinutes)
+                self.loadEngine?.recordBreakTaken()
             }
         }
 
@@ -213,12 +223,43 @@ struct ReflexApp: App {
         ) { _ in
             Task { @MainActor in
                 breakService.endBreakEarly()
+                self.loadEngine?.recordBreakTaken()
+            }
+        }
+
+        // Eye rest observers
+        NotificationCenter.default.addObserver(
+            forName: .startEyeRest, object: nil, queue: .main
+        ) { _ in
+            Task { @MainActor in
+                breakService.startEyeRest()
+            }
+        }
+
+        NotificationCenter.default.addObserver(
+            forName: .skipEyeRest, object: nil, queue: .main
+        ) { _ in
+            Task { @MainActor in
+                breakService.skipEyeRest()
+            }
+        }
+
+        NotificationCenter.default.addObserver(
+            forName: .dismissEyeRest, object: nil, queue: .main
+        ) { _ in
+            Task { @MainActor in
+                breakService.dismissEyeRest()
             }
         }
 
         // Sync user preferences to service
         breakService.selectedBreakDurationMinutes = breakDurationMinutes
         breakService.breathingExerciseEnabled = breathingExerciseEnabled
+        breakService.eyeRestEnabled = eyeRestEnabled
+        breakService.eyeRestIntervalMinutes = eyeRestIntervalMinutes
+        breakService.focusBreakIntervalMinutes = focusBreakIntervalMinutes
+        breakService.hydrationReminderEnabled = hydrationReminderEnabled
+        breakService.hydrationIntervalMinutes = hydrationIntervalMinutes
         breakService.startSession()
 
         // Save session data on app termination
@@ -239,9 +280,35 @@ struct ReflexApp: App {
     }
 
     private func setupBreakTriggerMonitor(engine: CognitiveLoadEngine) {
-        Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { _ in
+        // Track if natural break was already credited for current idle period
+        var naturalBreakCredited = false
+        var lastActiveMinutes = 0
+
+        Timer.scheduledTimer(withTimeInterval: ReflexConstants.activityCheckInterval, repeats: true) { _ in
             Task { @MainActor in
-                if engine.minutesAtHighLoad >= 10 && !engine.hasTriggeredBreak {
+                let activeMinutes = engine.continuousActiveMinutes
+                let idleDuration = Date.now.timeIntervalSince(engine.lastInputTime)
+                let isIdle = idleDuration >= ReflexConstants.naturalBreakThreshold
+
+                // 1. Natural break detection: user has been idle for 2+ minutes
+                if isIdle && !naturalBreakCredited {
+                    naturalBreakCredited = true
+                    self.breakService.recordNaturalBreak()
+                    engine.recordBreakTaken()
+                }
+
+                // Reset natural break credit when user becomes active again
+                if !isIdle {
+                    naturalBreakCredited = false
+                }
+
+                // Only check triggers when user is active
+                guard !isIdle else { return }
+
+                // 2. Cognitive load-based break (existing, improved)
+                // Trigger on 5+ accumulated minutes of high load (not just continuous)
+                if engine.accumulatedHighLoadMinutes >= 5 && !engine.hasTriggeredBreak {
+                    self.breakService.notificationPopup.mode = .breakReminder
                     self.breakService.sendBreakReminder(
                         loadScore: engine.currentScore,
                         minutesAtHighLoad: engine.minutesAtHighLoad
@@ -249,9 +316,26 @@ struct ReflexApp: App {
                     engine.hasTriggeredBreak = true
                 }
 
-                if engine.minutesAtHighLoad < 5 {
+                // Reset load-based trigger when accumulated high load drops
+                if engine.accumulatedHighLoadMinutes < 2 {
                     engine.hasTriggeredBreak = false
                 }
+
+                // 3. Time-based break reminder (independent of cognitive load)
+                if self.breakService.checkTimedBreak(
+                    continuousActiveMinutes: activeMinutes,
+                    hasTriggeredTimedBreak: engine.hasTriggeredTimedBreak
+                ) {
+                    engine.hasTriggeredTimedBreak = true
+                }
+
+                // 4. Eye rest check
+                self.breakService.checkEyeRest(continuousActiveMinutes: activeMinutes)
+
+                // 5. Hydration reminder check
+                self.breakService.checkHydrationReminder()
+
+                lastActiveMinutes = activeMinutes
             }
         }
     }

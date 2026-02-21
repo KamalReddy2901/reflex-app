@@ -42,6 +42,7 @@
 		DCCA218832EA40D0523D5EC8 /* DataPersistenceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10175329E8E20930D7BD340E /* DataPersistenceService.swift */; };
 		E5372DEE6F1740CE9DCAFEBB /* CognitiveLoadPredictor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56BE84680B54C49CA08EB3D7 /* CognitiveLoadPredictor.swift */; };
 		EA6E57D05B8BCE0A1CCE179D /* InputMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06C4AA818500F7F1C43B255F /* InputMetrics.swift */; };
+		F1A2B3C4D5E6F7081234ABCD /* EyeRestOverlayWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607081234ABCD /* EyeRestOverlayWindow.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -83,6 +84,7 @@
 		DB9DD3FB0B58D812225339A9 /* GlassMorphicCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassMorphicCard.swift; sourceTree = "<group>"; };
 		E1851B2410BAB357EF47DEA0 /* KeystrokeAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeystrokeAnalyzer.swift; sourceTree = "<group>"; };
 		E5E84214F3A05AE87489A5ED /* AppSwitchMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSwitchMonitor.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F607081234ABCD /* EyeRestOverlayWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EyeRestOverlayWindow.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -131,6 +133,7 @@
 				673C9001E0251E4C9B66CF9E /* BreakOverlayWindow.swift */,
 				4DF24419971CC0901ABDE8F8 /* CursorFollowerWindow.swift */,
 				785CD2F7BE5C7EBAE21D24C6 /* DashboardView.swift */,
+				A1B2C3D4E5F607081234ABCD /* EyeRestOverlayWindow.swift */,
 				D0BB670B95ADFC01CA098C87 /* InsightsView.swift */,
 				174526262A8A43D23EBB6764 /* MenuBarView.swift */,
 				5EA75C7FD93A15A9DDBEC7D4 /* OnboardingTriggerView.swift */,
@@ -279,6 +282,7 @@
 				3480E5EE74572B54BCED619E /* DashboardView.swift in Sources */,
 				DCCA218832EA40D0523D5EC8 /* DataPersistenceService.swift in Sources */,
 				93C4FAED9F18454AFA091A1F /* EventMonitorService.swift in Sources */,
+				F1A2B3C4D5E6F7081234ABCD /* EyeRestOverlayWindow.swift in Sources */,
 				A5B8BBD9B5FFD32E798D99F0 /* Extensions.swift in Sources */,
 				1B93407DC257FC66415EA589 /* FeatureExtractor.swift in Sources */,
 				D028242FA03C8AE8D2FCE59C /* GlassMorphicCard.swift in Sources */,

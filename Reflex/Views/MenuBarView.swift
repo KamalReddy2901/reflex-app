@@ -80,7 +80,9 @@ struct MenuBarView: View {
             HStack(spacing: 0) {
                 miniStat(icon: "timer", label: "Focus", value: breakService.focusTimeFormatted)
                 Spacer()
-                miniStat(icon: "cup.and.saucer", label: "Breaks", value: "\(breakService.breaksTaken)")
+                miniStat(icon: "brain.head.profile", label: "Active", value: "\(loadEngine.continuousActiveMinutes)m")
+                Spacer()
+                miniStat(icon: "cup.and.saucer", label: "Breaks", value: "\(breakService.breaksTaken + breakService.naturalBreaksTaken)")
                 if let last = breakService.lastBreakTime {
                     Spacer()
                     miniStat(icon: "clock.arrow.circlepath", label: "Last break", value: timeSince(last))
@@ -160,6 +162,16 @@ struct MenuBarView: View {
                 }
                 .buttonStyle(.plain)
                 .help("Test break overlay")
+
+                Button(action: {
+                    breakService.triggerEyeRest()
+                }) {
+                    Image(systemName: "eye")
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.5))
+                }
+                .buttonStyle(.plain)
+                .help("Test eye rest")
 
                 Menu {
                     Button("2 minutes") { breakService.startBreak(durationMinutes: 2) }

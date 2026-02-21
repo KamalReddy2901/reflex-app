@@ -1,4 +1,5 @@
 import Foundation
+import UserNotifications
 
 @MainActor
 class BreakReminderService: ObservableObject {
@@ -11,14 +12,39 @@ class BreakReminderService: ObservableObject {
     @Published var sessionStartTime: Date = .now
     @Published var totalFocusSeconds: TimeInterval = 0
 
+    // Eye Rest
+    @Published var eyeRestEnabled: Bool = true
+    @Published var eyeRestIntervalMinutes: Int = ReflexConstants.eyeRestDefaultIntervalMinutes
+    @Published var showEyeRestOverlay: Bool = false
+    @Published var eyeRestRemaining: TimeInterval = ReflexConstants.eyeRestDuration
+    @Published var isEyeResting: Bool = false
+    @Published var lastEyeRestTime: Date = .now
+
+    // Time-based breaks
+    @Published var focusBreakIntervalMinutes: Int = ReflexConstants.defaultFocusBreakIntervalMinutes
+
+    // Hydration
+    @Published var hydrationReminderEnabled: Bool = false
+    @Published var hydrationIntervalMinutes: Int = ReflexConstants.hydrationDefaultIntervalMinutes
+    @Published var lastHydrationReminder: Date = .now
+
+    // Natural break detection
+    @Published var naturalBreaksTaken: Int = 0
+
+    // Skip escalation
+    @Published var consecutiveSkips: Int = 0
+
     let overlayController = BreakOverlayWindowController()
     let cursorFollower = CursorFollowerWindowController()
     let notificationPopup = BreakNotificationPopupController()
+    let eyeRestOverlayController = EyeRestOverlayWindowController()
 
     private var breakTimer: Timer?
     private var snoozeTimer: Timer?
     private var preBreakTimer: Timer?
     private var focusTimer: Timer?
+    private var eyeRestTimer: Timer?
+    private var eyeRestPreTimer: Timer?
     private var reminderEnabled: Bool = true
     private var reminderInterval: TimeInterval = ReflexConstants.breakReminderDuration
 
@@ -101,6 +127,8 @@ class BreakReminderService: ObservableObject {
 
         isOnBreak = true
         lastBreakTime = .now
+        lastEyeRestTime = .now // Reset eye rest timer on explicit break
+        consecutiveSkips = 0
         breakDuration = 0
         breakRemaining = effectiveDuration
         showBreakOverlay = true
@@ -150,6 +178,8 @@ class BreakReminderService: ObservableObject {
         notificationPopup.dismiss()
         preBreakTimer?.invalidate()
         preBreakTimer = nil
+
+        consecutiveSkips += 1
 
         // Show gentle fullscreen message
         overlayController.showSkipMessage()
@@ -201,6 +231,169 @@ class BreakReminderService: ObservableObject {
         overlayController.dismiss()
     }
 
+    // MARK: - Eye Rest (20-20-20 Rule)
+
+    /// Triggers the eye rest flow: cursor follower (15s) → popup → fullscreen overlay (20s)
+    func triggerEyeRest() {
+        guard eyeRestEnabled, !isOnBreak, !isEyeResting else { return }
+
+        // Show cursor-following countdown (15 seconds)
+        cursorFollower.show(countdownSeconds: ReflexConstants.eyeRestPreCountdown)
+
+        // Show notification popup in eye rest mode
+        notificationPopup.mode = .eyeRest
+        notificationPopup.show(
+            loadScore: 0,
+            minutesAtHighLoad: 0,
+            countdown: ReflexConstants.eyeRestPreCountdown
+        )
+
+        // Start pre-countdown timer
+        var remaining = ReflexConstants.eyeRestPreCountdown
+        eyeRestPreTimer?.invalidate()
+        eyeRestPreTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] timer in
+            Task { @MainActor in
+                guard let self = self else { timer.invalidate(); return }
+                remaining -= 1
+                self.cursorFollower.tick()
+                self.notificationPopup.updateCountdown(remaining)
+
+                if remaining <= 0 {
+                    timer.invalidate()
+                    self.eyeRestPreTimer = nil
+                    // Auto-start eye rest if user hasn't skipped
+                    if self.cursorFollower.isVisible {
+                        self.startEyeRest()
+                    }
+                }
+            }
+        }
+    }
+
+    /// Start the actual eye rest overlay (20s countdown)
+    func startEyeRest() {
+        // Dismiss pre-UI
+        cursorFollower.dismiss()
+        notificationPopup.dismiss()
+        eyeRestPreTimer?.invalidate()
+        eyeRestPreTimer = nil
+
+        isEyeResting = true
+        showEyeRestOverlay = true
+        eyeRestRemaining = ReflexConstants.eyeRestDuration
+
+        eyeRestOverlayController.show(duration: ReflexConstants.eyeRestDuration)
+
+        eyeRestTimer?.invalidate()
+        eyeRestTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
+            Task { @MainActor in
+                guard let self = self, self.isEyeResting else { return }
+                self.eyeRestRemaining -= 1
+                self.eyeRestOverlayController.updateCountdown(remaining: self.eyeRestRemaining)
+
+                if self.eyeRestRemaining <= 0 {
+                    self.completeEyeRest()
+                }
+            }
+        }
+    }
+
+    /// Eye rest completed naturally
+    private func completeEyeRest() {
+        isEyeResting = false
+        lastEyeRestTime = .now
+        eyeRestTimer?.invalidate()
+        eyeRestTimer = nil
+
+        eyeRestOverlayController.showCompleted()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in
+            self?.eyeRestOverlayController.dismiss()
+            self?.showEyeRestOverlay = false
+        }
+    }
+
+    /// User skipped eye rest
+    func skipEyeRest() {
+        cursorFollower.dismiss()
+        notificationPopup.dismiss()
+        eyeRestPreTimer?.invalidate()
+        eyeRestPreTimer = nil
+        isEyeResting = false
+        eyeRestTimer?.invalidate()
+        eyeRestTimer = nil
+        lastEyeRestTime = .now // Reset timer so it doesn't immediately re-trigger
+        showEyeRestOverlay = false
+        eyeRestOverlayController.dismiss()
+    }
+
+    func dismissEyeRest() {
+        skipEyeRest()
+    }
+
+    /// Check if eye rest should be triggered based on elapsed focus time
+    func checkEyeRest(continuousActiveMinutes: Int) {
+        guard eyeRestEnabled, !isOnBreak, !isEyeResting else { return }
+
+        let minutesSinceLastEyeRest = Int(Date.now.timeIntervalSince(lastEyeRestTime) / 60)
+        if minutesSinceLastEyeRest >= eyeRestIntervalMinutes {
+            triggerEyeRest()
+        }
+    }
+
+    // MARK: - Time-Based Break Reminders
+
+    /// Check if a time-based break should be triggered (independent of cognitive load)
+    func checkTimedBreak(continuousActiveMinutes: Int, hasTriggeredTimedBreak: Bool) -> Bool {
+        guard reminderEnabled, !isOnBreak, !isEyeResting else { return false }
+
+        if continuousActiveMinutes >= focusBreakIntervalMinutes && !hasTriggeredTimedBreak {
+            // Trigger a time-based break reminder
+            notificationPopup.mode = .timedBreak(minutesFocused: continuousActiveMinutes)
+            sendBreakReminder(
+                loadScore: max(40, Int(Double(continuousActiveMinutes) / Double(focusBreakIntervalMinutes) * 50)),
+                minutesAtHighLoad: continuousActiveMinutes
+            )
+            return true
+        }
+        return false
+    }
+
+    // MARK: - Hydration Reminders
+
+    func checkHydrationReminder() {
+        guard hydrationReminderEnabled else { return }
+
+        let minutesSinceLastReminder = Int(Date.now.timeIntervalSince(lastHydrationReminder) / 60)
+        if minutesSinceLastReminder >= hydrationIntervalMinutes {
+            sendHydrationReminder()
+            lastHydrationReminder = .now
+        }
+    }
+
+    private func sendHydrationReminder() {
+        let content = UNMutableNotificationContent()
+        content.title = "💧 Stay Hydrated"
+        content.body = "You've been working for a while. Take a sip of water!"
+        content.sound = .default
+
+        let request = UNNotificationRequest(
+            identifier: "hydration-\(Date.now.timeIntervalSince1970)",
+            content: content,
+            trigger: nil
+        )
+        UNUserNotificationCenter.current().add(request)
+    }
+
+    // MARK: - Natural Break Detection
+
+    /// Called when the system detects the user has been idle for 2+ minutes
+    func recordNaturalBreak() {
+        naturalBreaksTaken += 1
+        lastBreakTime = .now
+        lastEyeRestTime = .now // Reset eye rest timer too
+        consecutiveSkips = 0
+    }
+
     func setReminderEnabled(_ enabled: Bool) {
         reminderEnabled = enabled
     }
@@ -236,5 +429,7 @@ class BreakReminderService: ObservableObject {
         snoozeTimer?.invalidate()
         preBreakTimer?.invalidate()
         focusTimer?.invalidate()
+        eyeRestTimer?.invalidate()
+        eyeRestPreTimer?.invalidate()
     }
 }

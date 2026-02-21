@@ -15,6 +15,11 @@ struct SettingsView: View {
     @AppStorage("sensitivityLevel") private var sensitivityLevel = 0.5
     @AppStorage("showInDock") private var showInDock = false
     @AppStorage("launchAtLogin") private var launchAtLogin = false
+    @AppStorage("eyeRestEnabled") private var eyeRestEnabled = true
+    @AppStorage("eyeRestIntervalMinutes") private var eyeRestIntervalMinutes = ReflexConstants.eyeRestDefaultIntervalMinutes
+    @AppStorage("focusBreakIntervalMinutes") private var focusBreakIntervalMinutes = ReflexConstants.defaultFocusBreakIntervalMinutes
+    @AppStorage("hydrationReminderEnabled") private var hydrationReminderEnabled = false
+    @AppStorage("hydrationIntervalMinutes") private var hydrationIntervalMinutes = ReflexConstants.hydrationDefaultIntervalMinutes
 
     @State private var showClearConfirmation = false
     @State private var showResetBaseline = false
@@ -171,6 +176,115 @@ struct SettingsView: View {
                         }
 
                     Text("When off, breaks show a simple countdown timer without guided breathing.")
+                        .font(.caption2)
+                        .foregroundColor(.white.opacity(0.4))
+
+                    Divider()
+                        .background(Color.white.opacity(0.1))
+
+                    // Time-based break interval
+                    HStack {
+                        Text("Focus break after")
+                            .font(.caption)
+                            .foregroundColor(.white.opacity(0.6))
+
+                        Picker("", selection: $focusBreakIntervalMinutes) {
+                            Text("20 min").tag(20)
+                            Text("25 min").tag(25)
+                            Text("30 min").tag(30)
+                            Text("45 min").tag(45)
+                            Text("60 min").tag(60)
+                        }
+                        .pickerStyle(.segmented)
+                        .frame(maxWidth: 350)
+                        .onChange(of: focusBreakIntervalMinutes) { _, newValue in
+                            breakService.focusBreakIntervalMinutes = newValue
+                        }
+                    }
+
+                    Text("Triggers a break reminder after this many minutes of continuous activity, regardless of cognitive load score.")
+                        .font(.caption2)
+                        .foregroundColor(.white.opacity(0.4))
+                }
+            }
+
+            // Eye Rest (20-20-20 Rule)
+            GlassMorphicCard {
+                VStack(alignment: .leading, spacing: 12) {
+                    Label("Eye Rest", systemImage: "eye")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .foregroundColor(.white.opacity(0.8))
+
+                    Toggle("Enable Eye Rest Reminders", isOn: $eyeRestEnabled)
+                        .tint(.blue)
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.8))
+                        .onChange(of: eyeRestEnabled) { _, newValue in
+                            breakService.eyeRestEnabled = newValue
+                        }
+
+                    HStack {
+                        Text("Remind every")
+                            .font(.caption)
+                            .foregroundColor(.white.opacity(0.6))
+
+                        Picker("", selection: $eyeRestIntervalMinutes) {
+                            Text("20 min").tag(20)
+                            Text("30 min").tag(30)
+                            Text("40 min").tag(40)
+                            Text("60 min").tag(60)
+                        }
+                        .pickerStyle(.segmented)
+                        .frame(maxWidth: 280)
+                        .onChange(of: eyeRestIntervalMinutes) { _, newValue in
+                            breakService.eyeRestIntervalMinutes = newValue
+                        }
+                    }
+
+                    Text("Based on the 20-20-20 rule: every 20 minutes, look at something 20 feet away for 20 seconds. Shows a quick 20-second fullscreen overlay.")
+                        .font(.caption2)
+                        .foregroundColor(.white.opacity(0.4))
+                }
+            }
+
+            // Hydration
+            GlassMorphicCard {
+                VStack(alignment: .leading, spacing: 12) {
+                    Label("Wellness Reminders", systemImage: "drop")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .foregroundColor(.white.opacity(0.8))
+
+                    Toggle("Hydration Reminders", isOn: $hydrationReminderEnabled)
+                        .tint(.cyan)
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.8))
+                        .onChange(of: hydrationReminderEnabled) { _, newValue in
+                            breakService.hydrationReminderEnabled = newValue
+                        }
+
+                    if hydrationReminderEnabled {
+                        HStack {
+                            Text("Remind every")
+                                .font(.caption)
+                                .foregroundColor(.white.opacity(0.6))
+
+                            Picker("", selection: $hydrationIntervalMinutes) {
+                                Text("30 min").tag(30)
+                                Text("45 min").tag(45)
+                                Text("60 min").tag(60)
+                                Text("90 min").tag(90)
+                            }
+                            .pickerStyle(.segmented)
+                            .frame(maxWidth: 280)
+                            .onChange(of: hydrationIntervalMinutes) { _, newValue in
+                                breakService.hydrationIntervalMinutes = newValue
+                            }
+                        }
+                    }
+
+                    Text("Sends a gentle system notification to drink water. Small habit, big impact.")
                         .font(.caption2)
                         .foregroundColor(.white.opacity(0.4))
                 }

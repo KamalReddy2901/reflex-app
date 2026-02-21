@@ -92,4 +92,7 @@ extension Notification.Name {
     static let navigateToDashboardTab = Notification.Name("com.reflex.navigateToDashboardTab")
     static let showOnboarding = Notification.Name("com.reflex.showOnboarding")
     static let appWillTerminate = Notification.Name("com.reflex.appWillTerminate")
+    static let startEyeRest = Notification.Name("com.reflex.startEyeRest")
+    static let skipEyeRest = Notification.Name("com.reflex.skipEyeRest")
+    static let dismissEyeRest = Notification.Name("com.reflex.dismissEyeRest")
 }
