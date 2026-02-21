@@ -72,6 +72,7 @@ struct DashboardView: View {
             }
             .listStyle(.sidebar)
             .scrollContentBackground(.hidden)
+            .padding(.top, 8)
 
             Spacer()
 

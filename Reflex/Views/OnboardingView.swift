@@ -3,6 +3,7 @@ import SwiftUI
 struct OnboardingView: View {
     @Binding var isComplete: Bool
     @EnvironmentObject var permissionService: AccessibilityPermissionService
+    @Environment(\.dismiss) private var dismiss
     @State private var currentPage = 0
     @State private var animateIn = false
 
@@ -37,7 +38,7 @@ struct OnboardingView: View {
                     .padding(.bottom, 32)
             }
         }
-        .frame(width: 680, height: 520)
+        .frame(width: 680, height: 580)
         .onAppear {
             withAnimation(.easeOut(duration: 0.8)) {
                 animateIn = true
@@ -138,8 +139,10 @@ struct OnboardingView: View {
     }
 
     private func completeOnboarding() {
-        withAnimation(.easeIn(duration: 0.3)) {
-            isComplete = true
+        isComplete = true
+        // Close the onboarding window after a brief moment
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            dismiss()
         }
     }
 }

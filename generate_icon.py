@@ -107,36 +107,36 @@ def create_icon():
     glow_draw = ImageDraw.Draw(glow)
 
     # Top-right: warm teal glow
-    for radius in range(320, 0, -2):
-        alpha = int(18 * (1.0 - radius / 320.0) ** 1.5)
-        cx, cy = CENTER + 160, CENTER - 200
+    for radius in range(350, 0, -2):
+        alpha = int(22 * (1.0 - radius / 350.0) ** 1.5)
+        cx, cy = CENTER + 140, CENTER - 180
         glow_draw.ellipse([cx - radius, cy - radius, cx + radius, cy + radius],
-                          fill=(0, 210, 190, alpha))
+                          fill=(0, 220, 200, alpha))
 
     # Bottom-left: purple glow
-    for radius in range(280, 0, -2):
-        alpha = int(14 * (1.0 - radius / 280.0) ** 1.5)
-        cx, cy = CENTER - 180, CENTER + 220
+    for radius in range(300, 0, -2):
+        alpha = int(18 * (1.0 - radius / 300.0) ** 1.5)
+        cx, cy = CENTER - 160, CENTER + 200
         glow_draw.ellipse([cx - radius, cy - radius, cx + radius, cy + radius],
                           fill=(140, 60, 240, alpha))
 
-    # Center: subtle green glow
-    for radius in range(200, 0, -2):
-        alpha = int(12 * (1.0 - radius / 200.0) ** 1.5)
-        glow_draw.ellipse([CENTER - radius, CENTER - radius, CENTER + radius, CENTER + radius],
-                          fill=(40, 230, 160, alpha))
+    # Center: strong green/teal glow for the brain area
+    for radius in range(280, 0, -2):
+        alpha = int(20 * (1.0 - radius / 280.0) ** 1.5)
+        glow_draw.ellipse([CENTER - radius, CENTER - radius - 20, CENTER + radius, CENTER + radius - 20],
+                          fill=(30, 230, 170, alpha))
 
     glow.putalpha(mask_composite(glow.getchannel("A"), mask))
     img = Image.alpha_composite(img, glow)
 
-    # === STEP 4: Main symbol — stylized brain/pulse ring ===
+    # === STEP 4: Main symbol — Bold brain with bright neural network ===
     symbol = Image.new("RGBA", (SIZE, SIZE), (0, 0, 0, 0))
     s_draw = ImageDraw.Draw(symbol)
 
     # --- Outer monitoring ring (progress arc) ---
     ring_cx, ring_cy = CENTER, CENTER - 10
-    ring_r = 280
-    ring_width = 18
+    ring_r = 340  # Bigger ring
+    ring_width = 20
 
     # Ring background (dark track)
     for angle_deg in range(360):
@@ -145,22 +145,22 @@ def create_icon():
             x = int(ring_cx + (ring_r + w) * math.cos(angle))
             y = int(ring_cy + (ring_r + w) * math.sin(angle))
             if 0 <= x < SIZE and 0 <= y < SIZE:
-                s_draw.point((x, y), fill=(255, 255, 255, 8))
+                s_draw.point((x, y), fill=(255, 255, 255, 10))
 
-    # Active arc (about 75% filled) — gradient from teal to mint
+    # Active arc (about 75% filled) — gradient from teal to mint — BRIGHTER
     arc_extent = 270  # degrees of fill
     for angle_deg in range(arc_extent):
         angle = math.radians(angle_deg - 90)
         progress = angle_deg / arc_extent
-        # Color gradient: teal → mint → green
-        r = int(0 + progress * 40)
-        g = int(200 + progress * 55)
-        b = int(180 - progress * 40)
-        alpha = int(180 + progress * 75)
+        # Brighter color gradient: teal → mint → green
+        r = int(0 + progress * 60)
+        g = int(210 + progress * 45)
+        b = int(190 - progress * 50)
+        alpha = int(200 + progress * 55)
 
         for w in range(-ring_width//2, ring_width//2 + 1):
             dist_from_center = abs(w) / (ring_width / 2)
-            edge_alpha = int(alpha * (1.0 - dist_from_center * 0.4))
+            edge_alpha = int(alpha * (1.0 - dist_from_center * 0.3))
             x = int(ring_cx + (ring_r + w) * math.cos(angle))
             y = int(ring_cy + (ring_r + w) * math.sin(angle))
             if 0 <= x < SIZE and 0 <= y < SIZE:
@@ -170,23 +170,23 @@ def create_icon():
     end_angle = math.radians(arc_extent - 90)
     cap_x = int(ring_cx + ring_r * math.cos(end_angle))
     cap_y = int(ring_cy + ring_r * math.sin(end_angle))
-    for cr in range(24, 0, -1):
-        alpha = int(200 * (1.0 - cr / 24.0))
+    for cr in range(30, 0, -1):
+        alpha = int(220 * (1.0 - cr / 30.0))
         s_draw.ellipse([cap_x - cr, cap_y - cr, cap_x + cr, cap_y + cr],
-                       fill=(100, 255, 210, alpha))
-    s_draw.ellipse([cap_x - 9, cap_y - 9, cap_x + 9, cap_y + 9],
-                   fill=(180, 255, 230, 255))
+                       fill=(120, 255, 220, alpha))
+    s_draw.ellipse([cap_x - 10, cap_y - 10, cap_x + 10, cap_y + 10],
+                   fill=(200, 255, 240, 255))
 
     # --- Tick marks around the ring ---
     num_ticks = 60
     for i in range(num_ticks):
         angle = math.radians(i * (360 / num_ticks) - 90)
         is_major = (i % 5 == 0)
-        tick_len = 14 if is_major else 7
-        tick_alpha = 60 if is_major else 30
+        tick_len = 16 if is_major else 8
+        tick_alpha = 70 if is_major else 35
         tick_w = 2 if is_major else 1
 
-        inner_r = ring_r + ring_width // 2 + 4
+        inner_r = ring_r + ring_width // 2 + 5
         outer_r = inner_r + tick_len
 
         x1 = int(ring_cx + inner_r * math.cos(angle))
@@ -195,140 +195,101 @@ def create_icon():
         y2 = int(ring_cy + outer_r * math.sin(angle))
         s_draw.line([(x1, y1), (x2, y2)], fill=(160, 255, 220, tick_alpha), width=tick_w)
 
-    # --- Center brain symbol ---
-    # Stylized brain as two hemispheres with neural connections
-
+    # --- Center brain symbol — BIGGER, BRIGHTER, BOLDER ---
     brain_cx, brain_cy = CENTER, CENTER - 10
-    brain_scale = 1.0
 
-    # Brain outer shape (two overlapping hemispheres)
-    # Left hemisphere
-    lh_cx = brain_cx - 45
-    # Right hemisphere
-    rh_cx = brain_cx + 45
+    # Left hemisphere center
+    lh_cx = brain_cx - 60
+    # Right hemisphere center
+    rh_cx = brain_cx + 60
 
-    # Draw a simplified brain outline using curves
-    # Main brain body glow
-    for radius in range(110, 0, -2):
-        alpha = int(35 * (1.0 - radius / 110.0) ** 1.2)
+    # Brain outer glow — larger, brighter
+    for radius in range(160, 0, -2):
+        alpha = int(50 * (1.0 - radius / 160.0) ** 1.2)
         s_draw.ellipse([brain_cx - radius, brain_cy - radius - 10,
                         brain_cx + radius, brain_cy + radius - 10],
-                       fill=(60, 230, 180, alpha))
+                       fill=(60, 240, 190, alpha))
 
-    # Left hemisphere
-    for radius in range(75, 0, -1):
-        alpha = int(160 * (1.0 - radius / 75.0) ** 0.6)
+    # Left hemisphere — larger
+    for radius in range(105, 0, -1):
+        alpha = int(200 * (1.0 - radius / 105.0) ** 0.5)
         s_draw.ellipse([lh_cx - radius, brain_cy - radius + 5,
                         lh_cx + radius, brain_cy + radius + 5],
-                       fill=(30, 180, 140, alpha))
+                       fill=(30, 190, 150, alpha))
 
-    # Right hemisphere
-    for radius in range(75, 0, -1):
-        alpha = int(160 * (1.0 - radius / 75.0) ** 0.6)
+    # Right hemisphere — larger
+    for radius in range(105, 0, -1):
+        alpha = int(200 * (1.0 - radius / 105.0) ** 0.5)
         s_draw.ellipse([rh_cx - radius, brain_cy - radius + 5,
                         rh_cx + radius, brain_cy + radius + 5],
-                       fill=(40, 200, 160, alpha))
+                       fill=(40, 210, 170, alpha))
 
-    # Central divide line
-    s_draw.line([(brain_cx, brain_cy - 70), (brain_cx, brain_cy + 70)],
-                fill=(20, 60, 50, 120), width=3)
+    # Central divide line — bolder
+    s_draw.line([(brain_cx, brain_cy - 100), (brain_cx, brain_cy + 100)],
+                fill=(15, 50, 42, 140), width=4)
 
-    # Brain folds (sulci) — curved lines on each hemisphere
-    # Left side folds
+    # Brain folds (sulci) — larger, bolder curves
     fold_points_l = [
-        [(lh_cx - 55, brain_cy - 20), (lh_cx - 25, brain_cy - 35), (lh_cx + 10, brain_cy - 25)],
-        [(lh_cx - 50, brain_cy + 10), (lh_cx - 15, brain_cy + 25), (lh_cx + 15, brain_cy + 15)],
+        [(lh_cx - 80, brain_cy - 30), (lh_cx - 35, brain_cy - 50), (lh_cx + 15, brain_cy - 35)],
+        [(lh_cx - 70, brain_cy + 15), (lh_cx - 20, brain_cy + 35), (lh_cx + 20, brain_cy + 20)],
+        [(lh_cx - 60, brain_cy - 5), (lh_cx - 30, brain_cy + 5), (lh_cx + 5, brain_cy - 5)],
     ]
     for fold in fold_points_l:
         for i in range(len(fold) - 1):
-            s_draw.line([fold[i], fold[i+1]], fill=(20, 120, 100, 80), width=2)
+            s_draw.line([fold[i], fold[i+1]], fill=(15, 100, 85, 100), width=3)
 
-    # Right side folds
     fold_points_r = [
-        [(rh_cx - 10, brain_cy - 25), (rh_cx + 25, brain_cy - 35), (rh_cx + 55, brain_cy - 20)],
-        [(rh_cx - 15, brain_cy + 15), (rh_cx + 15, brain_cy + 25), (rh_cx + 50, brain_cy + 10)],
+        [(rh_cx - 15, brain_cy - 35), (rh_cx + 35, brain_cy - 50), (rh_cx + 80, brain_cy - 30)],
+        [(rh_cx - 20, brain_cy + 20), (rh_cx + 20, brain_cy + 35), (rh_cx + 70, brain_cy + 15)],
+        [(rh_cx - 5, brain_cy - 5), (rh_cx + 30, brain_cy + 5), (rh_cx + 60, brain_cy - 5)],
     ]
     for fold in fold_points_r:
         for i in range(len(fold) - 1):
-            s_draw.line([fold[i], fold[i+1]], fill=(20, 120, 100, 80), width=2)
+            s_draw.line([fold[i], fold[i+1]], fill=(15, 100, 85, 100), width=3)
 
-    # Neural nodes on the brain
+    # Neural nodes — BIGGER, BRIGHTER, more prominent
     node_positions = [
-        (lh_cx - 30, brain_cy - 30), (lh_cx + 5, brain_cy - 10),
-        (lh_cx - 20, brain_cy + 20), (lh_cx - 45, brain_cy + 5),
-        (rh_cx + 30, brain_cy - 30), (rh_cx - 5, brain_cy - 10),
-        (rh_cx + 20, brain_cy + 20), (rh_cx + 45, brain_cy + 5),
-        (brain_cx, brain_cy - 55), (brain_cx, brain_cy + 50),
+        (lh_cx - 42, brain_cy - 45), (lh_cx + 8, brain_cy - 15),
+        (lh_cx - 30, brain_cy + 30), (lh_cx - 65, brain_cy + 8),
+        (rh_cx + 42, brain_cy - 45), (rh_cx - 8, brain_cy - 15),
+        (rh_cx + 30, brain_cy + 30), (rh_cx + 65, brain_cy + 8),
+        (brain_cx, brain_cy - 80), (brain_cx, brain_cy + 70),
+        (lh_cx - 50, brain_cy - 20), (rh_cx + 50, brain_cy - 20),
     ]
 
-    # Connect some nodes with subtle lines
+    # Connect nodes with brighter lines
     connections = [
-        (0, 1), (1, 2), (2, 3), (3, 0), (0, 8),
-        (4, 5), (5, 6), (6, 7), (7, 4), (4, 8),
-        (1, 5), (2, 9), (6, 9), (8, 9),
+        (0, 1), (1, 2), (2, 3), (3, 0), (0, 8), (3, 10),
+        (4, 5), (5, 6), (6, 7), (7, 4), (4, 8), (7, 11),
+        (1, 5), (2, 9), (6, 9), (8, 9), (10, 0), (11, 4),
     ]
     for i, j in connections:
         x1, y1 = node_positions[i]
         x2, y2 = node_positions[j]
-        s_draw.line([(x1, y1), (x2, y2)], fill=(100, 255, 210, 50), width=1)
+        s_draw.line([(x1, y1), (x2, y2)], fill=(100, 255, 215, 80), width=2)
 
-    # Draw the nodes themselves
+    # Draw nodes — bigger glow, brighter cores
     for nx, ny in node_positions:
-        # Glow
-        for nr in range(12, 0, -1):
-            alpha = int(80 * (1.0 - nr / 12.0))
+        # Outer glow
+        for nr in range(18, 0, -1):
+            alpha = int(110 * (1.0 - nr / 18.0))
             s_draw.ellipse([nx - nr, ny - nr, nx + nr, ny + nr],
-                           fill=(80, 255, 200, alpha))
+                           fill=(80, 255, 210, alpha))
         # Core
-        s_draw.ellipse([nx - 4, ny - 4, nx + 4, ny + 4], fill=(160, 255, 230, 240))
-        s_draw.ellipse([nx - 2, ny - 2, nx + 2, ny + 2], fill=(220, 255, 245, 255))
+        s_draw.ellipse([nx - 6, ny - 6, nx + 6, ny + 6], fill=(170, 255, 235, 250))
+        s_draw.ellipse([nx - 3, ny - 3, nx + 3, ny + 3], fill=(230, 255, 250, 255))
 
-    # Central bright core node
-    for nr in range(30, 0, -1):
-        alpha = int(100 * (1.0 - nr / 30.0))
+    # Central bright core node — larger, glowing
+    for nr in range(45, 0, -1):
+        alpha = int(130 * (1.0 - nr / 45.0))
         s_draw.ellipse([brain_cx - nr, brain_cy - nr, brain_cx + nr, brain_cy + nr],
-                       fill=(80, 240, 190, alpha))
-    s_draw.ellipse([brain_cx - 10, brain_cy - 10, brain_cx + 10, brain_cy + 10],
-                   fill=(140, 255, 220, 255))
-    s_draw.ellipse([brain_cx - 6, brain_cy - 6, brain_cx + 6, brain_cy + 6],
-                   fill=(200, 255, 240, 255))
+                       fill=(70, 245, 195, alpha))
+    s_draw.ellipse([brain_cx - 14, brain_cy - 14, brain_cx + 14, brain_cy + 14],
+                   fill=(150, 255, 225, 255))
+    s_draw.ellipse([brain_cx - 8, brain_cy - 8, brain_cx + 8, brain_cy + 8],
+                   fill=(210, 255, 245, 255))
 
-    # --- Score text below brain ---
-    try:
-        font_paths = [
-            "/System/Library/Fonts/SFCompact-Bold.otf",
-            "/System/Library/Fonts/Supplemental/Arial Bold.ttf",
-            "/System/Library/Fonts/Helvetica.ttc",
-        ]
-        score_font = None
-        for fp in font_paths:
-            if os.path.exists(fp):
-                score_font = ImageFont.truetype(fp, 72)
-                break
-        if score_font:
-            # Draw "72" as example score
-            text = "72"
-            bbox = score_font.getbbox(text)
-            tw = bbox[2] - bbox[0]
-            th = bbox[3] - bbox[1]
-            tx = CENTER - tw // 2
-            ty = CENTER + 130
-            # Text glow
-            for offset in range(8, 0, -1):
-                alpha = int(30 * (1.0 - offset / 8.0))
-                s_draw.text((tx, ty), text, font=score_font, fill=(60, 220, 170, alpha))
-            s_draw.text((tx, ty), text, font=score_font, fill=(180, 255, 230, 220))
-
-            # Small label
-            label_font = ImageFont.truetype(fp, 28) if score_font else None
-            if label_font:
-                label = "COGNITIVE LOAD"
-                lbbox = label_font.getbbox(label)
-                lw = lbbox[2] - lbbox[0]
-                s_draw.text((CENTER - lw // 2, ty + 75), label,
-                           font=label_font, fill=(120, 200, 180, 120))
-    except Exception:
-        pass
+    # NO TEXT — icon only
 
     symbol.putalpha(mask_composite(symbol.getchannel("A"), mask))
     img = Image.alpha_composite(img, symbol)
