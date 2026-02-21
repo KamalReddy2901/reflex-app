@@ -310,6 +310,7 @@ struct ReflexApp: App {
                 if engine.accumulatedHighLoadMinutes >= 5 && !engine.hasTriggeredBreak {
                     self.breakService.notificationPopup.mode = .breakReminder
                     self.breakService.sendBreakReminder(
+
                         loadScore: engine.currentScore,
                         minutesAtHighLoad: engine.minutesAtHighLoad
                     )
@@ -330,7 +331,7 @@ struct ReflexApp: App {
                 }
 
                 // 4. Eye rest check
-                self.breakService.checkEyeRest(continuousActiveMinutes: activeMinutes)
+                self.breakService.checkEyeRest()
 
                 // 5. Hydration reminder check
                 self.breakService.checkHydrationReminder()

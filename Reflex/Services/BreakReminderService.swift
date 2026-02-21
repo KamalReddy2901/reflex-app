@@ -72,14 +72,20 @@ class BreakReminderService: ObservableObject {
     // MARK: - Break Reminder Flow (DeskRest-style)
 
     /// Step 1: Show cursor follower + top-right popup with 30s countdown
+    /// Whether any break/eye-rest UI is currently active (prevents overlapping triggers)
+    var isShowingAnyPrompt: Bool {
+        cursorFollower.isVisible || notificationPopup.isVisible || isOnBreak || isEyeResting
+    }
+
     func sendBreakReminder(loadScore: Int, minutesAtHighLoad: Int) {
-        guard reminderEnabled else { return }
+        guard reminderEnabled, !isShowingAnyPrompt else { return }
 
         // Show cursor-following countdown
         cursorFollower.show(countdownSeconds: preBreakCountdown)
 
-        // Show top-right notification popup
-        notificationPopup.mode = .breakReminder
+        // Only set mode to .breakReminder if not already overridden by caller
+        // (e.g. checkTimedBreak sets .timedBreak before calling this)
+        // Mode should be set BEFORE calling this method if a custom mode is needed.
         notificationPopup.show(
             loadScore: loadScore,
             minutesAtHighLoad: minutesAtHighLoad,
@@ -236,7 +242,7 @@ class BreakReminderService: ObservableObject {
 
     /// Triggers the eye rest flow: cursor follower (15s) → popup → fullscreen overlay (20s)
     func triggerEyeRest() {
-        guard eyeRestEnabled, !isOnBreak, !isEyeResting else { return }
+        guard eyeRestEnabled, !isShowingAnyPrompt else { return }
 
         // Show cursor-following countdown (15 seconds)
         cursorFollower.show(countdownSeconds: ReflexConstants.eyeRestPreCountdown)
@@ -332,8 +338,8 @@ class BreakReminderService: ObservableObject {
     }
 
     /// Check if eye rest should be triggered based on elapsed focus time
-    func checkEyeRest(continuousActiveMinutes: Int) {
-        guard eyeRestEnabled, !isOnBreak, !isEyeResting else { return }
+    func checkEyeRest() {
+        guard eyeRestEnabled, !isShowingAnyPrompt else { return }
 
         let minutesSinceLastEyeRest = Int(Date.now.timeIntervalSince(lastEyeRestTime) / 60)
         if minutesSinceLastEyeRest >= eyeRestIntervalMinutes {
@@ -345,10 +351,10 @@ class BreakReminderService: ObservableObject {
 
     /// Check if a time-based break should be triggered (independent of cognitive load)
     func checkTimedBreak(continuousActiveMinutes: Int, hasTriggeredTimedBreak: Bool) -> Bool {
-        guard reminderEnabled, !isOnBreak, !isEyeResting else { return false }
+        guard reminderEnabled, !isShowingAnyPrompt else { return false }
 
         if continuousActiveMinutes >= focusBreakIntervalMinutes && !hasTriggeredTimedBreak {
-            // Trigger a time-based break reminder
+            // Set mode BEFORE calling sendBreakReminder (which no longer overrides it)
             notificationPopup.mode = .timedBreak(minutesFocused: continuousActiveMinutes)
             sendBreakReminder(
                 loadScore: max(40, Int(Double(continuousActiveMinutes) / Double(focusBreakIntervalMinutes) * 50)),
@@ -372,6 +378,9 @@ class BreakReminderService: ObservableObject {
     }
 
     private func sendHydrationReminder() {
+        // Ensure notification permission is granted
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { _, _ in }
+
         let content = UNMutableNotificationContent()
         content.title = "💧 Stay Hydrated"
         content.body = "You've been working for a while. Take a sip of water!"
