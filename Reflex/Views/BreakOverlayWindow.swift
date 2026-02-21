@@ -270,7 +270,7 @@ struct BreakActiveTimerOnlyView: View {
                     .frame(width: 380, height: 380)
 
                 VStack(spacing: 10) {
-                    Text(formatTime(remaining))
+                    Text(remaining.formattedMinutesSeconds)
                         .font(.system(size: 96, weight: .ultraLight, design: .monospaced))
                         .foregroundColor(.white)
                     Text("remaining")
@@ -297,12 +297,6 @@ struct BreakActiveTimerOnlyView: View {
             .buttonStyle(.plain)
             .padding(.top, 12)
         }
-    }
-
-    private func formatTime(_ seconds: TimeInterval) -> String {
-        let m = Int(seconds) / 60
-        let s = Int(seconds) % 60
-        return String(format: "%d:%02d", m, s)
     }
 }
 
@@ -372,7 +366,7 @@ struct BreakActiveView: View {
 
                 // Time remaining
                 VStack(spacing: 8) {
-                    Text(formatTime(remaining))
+                    Text(remaining.formattedMinutesSeconds)
                         .font(.system(size: 68, weight: .ultraLight, design: .monospaced))
                         .foregroundColor(.white)
                     Text("remaining")
@@ -437,12 +431,6 @@ struct BreakActiveView: View {
         breathCycleTimer = Timer.scheduledTimer(withTimeInterval: 12.0, repeats: true) { _ in
             Task { @MainActor in cycle() }
         }
-    }
-
-    private func formatTime(_ seconds: TimeInterval) -> String {
-        let m = Int(seconds) / 60
-        let s = Int(seconds) % 60
-        return String(format: "%d:%02d", m, s)
     }
 }
 

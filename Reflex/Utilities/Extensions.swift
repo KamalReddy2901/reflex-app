@@ -67,25 +67,41 @@ extension Color {
     }
 }
 
+// MARK: - Cached Formatters
+
+private enum CachedFormatters {
+    static let timeFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.timeStyle = .short
+        return f
+    }()
+
+    static let dateFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateStyle = .medium
+        return f
+    }()
+
+    static let relativeFormatter: RelativeDateTimeFormatter = {
+        let f = RelativeDateTimeFormatter()
+        f.unitsStyle = .abbreviated
+        return f
+    }()
+}
+
 // MARK: - Date Extensions
 
 extension Date {
     var timeString: String {
-        let formatter = DateFormatter()
-        formatter.timeStyle = .short
-        return formatter.string(from: self)
+        CachedFormatters.timeFormatter.string(from: self)
     }
 
     var dateString: String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        return formatter.string(from: self)
+        CachedFormatters.dateFormatter.string(from: self)
     }
 
     var relativeDateString: String {
-        let formatter = RelativeDateTimeFormatter()
-        formatter.unitsStyle = .abbreviated
-        return formatter.localizedString(for: self, relativeTo: .now)
+        CachedFormatters.relativeFormatter.localizedString(for: self, relativeTo: .now)
     }
 }
 
@@ -111,6 +127,17 @@ extension Double {
             return String(format: "%dm %ds", minutes, seconds)
         }
         return String(format: "%ds", seconds)
+    }
+}
+
+// MARK: - TimeInterval Extensions
+
+extension TimeInterval {
+    /// Formats seconds as "M:SS" (e.g. 65 → "1:05")
+    var formattedMinutesSeconds: String {
+        let mins = Int(self) / 60
+        let secs = Int(self) % 60
+        return String(format: "%d:%02d", mins, secs)
     }
 }
 

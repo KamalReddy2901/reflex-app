@@ -11,6 +11,14 @@ class CognitiveLoadEngine: ObservableObject {
     @Published var isCalibrating: Bool = true
     @Published var minutesAtHighLoad: Int = 0
 
+    /// Tracks whether a break reminder has already been triggered for the
+    /// current high-load period, preventing repeated reminders.
+    var hasTriggeredBreak: Bool = false
+
+    /// Sensitivity multiplier (0.0 = low sensitivity, 1.0 = high sensitivity).
+    /// Applied to the raw score to make load detection more/less aggressive.
+    var sensitivityMultiplier: Double = 0.5
+
     private let keystrokeAnalyzer: KeystrokeAnalyzer
     private let mouseAnalyzer: MouseBehaviorAnalyzer
     private let appSwitchMonitor: AppSwitchMonitor
@@ -131,7 +139,9 @@ class CognitiveLoadEngine: ObservableObject {
             + pauseScore * ReflexConstants.pauseFrequencyWeight
             + scrollScore * ReflexConstants.scrollBehaviorWeight
 
-        return Int(min(100, max(0, score * 100)))
+        // Apply sensitivity: 0.0 → 0.7x (low), 0.5 → 1.0x (normal), 1.0 → 1.3x (high)
+        let sensitivityFactor = 0.7 + sensitivityMultiplier * 0.6
+        return Int(min(100, max(0, score * 100 * sensitivityFactor)))
     }
 
     private func normalizeScore(value: Double, low: Double, high: Double, baseline: Double?) -> Double {

@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 
 @main
 struct ReflexApp: App {
@@ -15,10 +16,13 @@ struct ReflexApp: App {
 
     @AppStorage("breakDurationMinutes") private var breakDurationMinutes = 5
     @AppStorage("breathingExerciseEnabled") private var breathingExerciseEnabled = true
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+    @AppStorage("sensitivityLevel") private var sensitivityLevel = 0.5
 
     @State private var loadEngine: CognitiveLoadEngine?
     @State private var isInitialized = false
-    @State private var hasTriggeredBreak = false
+    @State private var onboardingComplete = false
+    @State private var cancellables = Set<AnyCancellable>()
 
     var body: some Scene {
         // Menu Bar
@@ -58,20 +62,31 @@ struct ReflexApp: App {
         .windowStyle(.hiddenTitleBar)
         .defaultSize(width: ReflexConstants.dashboardMinWidth, height: ReflexConstants.dashboardMinHeight)
         .commandsRemoved()
+
+        // Onboarding Window
+        Window("Welcome to Reflex", id: "onboarding") {
+            OnboardingView(isComplete: $onboardingComplete)
+                .environmentObject(permissionService)
+                .onChange(of: onboardingComplete) { _, complete in
+                    if complete {
+                        hasCompletedOnboarding = true
+                    }
+                }
+        }
+        .windowStyle(.hiddenTitleBar)
+        .windowResizability(.contentSize)
+        .defaultPosition(.center)
+        .commandsRemoved()
     }
 
     // MARK: - Menu Bar Label
 
     private var menuBarLabel: some View {
-        HStack(spacing: 4) {
-            Image(systemName: "brain.head.profile")
-            if let engine = loadEngine {
-                Text("\(engine.currentScore)")
-                    .font(.caption)
-                    .monospacedDigit()
-            }
-        }
-        .onAppear {
+        OnboardingTriggerView(
+            hasCompletedOnboarding: $hasCompletedOnboarding,
+            loadEngine: loadEngine,
+            isInitialized: $isInitialized
+        ) {
             initializeServices()
         }
     }
@@ -88,6 +103,9 @@ struct ReflexApp: App {
             appSwitchMonitor: appSwitchMonitor
         )
         self.loadEngine = engine
+
+        // Sync sensitivity setting
+        engine.sensitivityMultiplier = sensitivityLevel
 
         // Wire event monitor to analyzers
         eventMonitor.onKeyDown = { [weak keystrokeAnalyzer] time in
@@ -133,14 +151,18 @@ struct ReflexApp: App {
                 startMonitoring(engine: engine)
             }
 
-            Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { _ in
-                Task { @MainActor in
-                    let wasGranted = self.eventMonitor.isMonitoring
-                    if self.permissionService.isGranted && !wasGranted {
+            // React when permission changes from false → true
+            // The AccessibilityPermissionService already polls every 2s
+            permissionService.$isGranted
+                .removeDuplicates()
+                .filter { $0 }
+                .sink { [weak engine] _ in
+                    guard let engine else { return }
+                    Task { @MainActor in
                         self.startMonitoring(engine: engine)
                     }
                 }
-            }
+                .store(in: &cancellables)
         }
     }
 
@@ -198,23 +220,40 @@ struct ReflexApp: App {
         breakService.selectedBreakDurationMinutes = breakDurationMinutes
         breakService.breathingExerciseEnabled = breathingExerciseEnabled
         breakService.startSession()
+
+        // Save session data on app termination
+        NotificationCenter.default.addObserver(
+            forName: .appWillTerminate, object: nil, queue: .main
+        ) { _ in
+            Task { @MainActor in
+                if let engine = self.loadEngine {
+                    self.persistenceService.endCurrentSession(
+                        loadHistory: engine.loadHistory,
+                        breaksTaken: self.breakService.breaksTaken,
+                        totalKeystrokes: self.keystrokeAnalyzer.metrics.totalKeystrokes,
+                        totalAppSwitches: self.appSwitchMonitor.totalSwitches
+                    )
+                }
+            }
+        }
     }
 
     private func setupBreakTriggerMonitor(engine: CognitiveLoadEngine) {
         Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { _ in
             Task { @MainActor in
-                if engine.minutesAtHighLoad >= 10 && !self.hasTriggeredBreak {
+                if engine.minutesAtHighLoad >= 10 && !engine.hasTriggeredBreak {
                     self.breakService.sendBreakReminder(
                         loadScore: engine.currentScore,
                         minutesAtHighLoad: engine.minutesAtHighLoad
                     )
-                    self.hasTriggeredBreak = true
+                    engine.hasTriggeredBreak = true
                 }
 
                 if engine.minutesAtHighLoad < 5 {
-                    self.hasTriggeredBreak = false
+                    engine.hasTriggeredBreak = false
                 }
             }
         }
     }
+
 }

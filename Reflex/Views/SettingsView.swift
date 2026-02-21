@@ -1,4 +1,5 @@
 import SwiftUI
+import ServiceManagement
 
 struct SettingsView: View {
     @EnvironmentObject var permissionService: AccessibilityPermissionService
@@ -12,7 +13,7 @@ struct SettingsView: View {
     @AppStorage("breakDurationMinutes") private var breakDurationMinutes = 5
     @AppStorage("breathingExerciseEnabled") private var breathingExerciseEnabled = true
     @AppStorage("sensitivityLevel") private var sensitivityLevel = 0.5
-    @AppStorage("showInDock") private var showInDock = true
+    @AppStorage("showInDock") private var showInDock = false
     @AppStorage("launchAtLogin") private var launchAtLogin = false
 
     @State private var showClearConfirmation = false
@@ -75,6 +76,13 @@ struct SettingsView: View {
                         .tint(.reflexPurple)
                         .font(.caption)
                         .foregroundColor(.white.opacity(0.8))
+                        .onChange(of: monitoringEnabled) { _, newValue in
+                            if newValue {
+                                loadEngine.startEngine()
+                            } else {
+                                loadEngine.stopEngine()
+                            }
+                        }
 
                     VStack(alignment: .leading, spacing: 4) {
                         HStack {
@@ -88,6 +96,9 @@ struct SettingsView: View {
                         }
                         Slider(value: $sensitivityLevel, in: 0...1)
                             .tint(.reflexPurple)
+                            .onChange(of: sensitivityLevel) { _, newValue in
+                                loadEngine.sensitivityMultiplier = newValue
+                            }
                     }
 
                     Text("Higher sensitivity means the app will detect cognitive load changes more aggressively.")
@@ -177,11 +188,27 @@ struct SettingsView: View {
                         .tint(.reflexPurple)
                         .font(.caption)
                         .foregroundColor(.white.opacity(0.8))
+                        .onChange(of: showInDock) { _, newValue in
+                            NSApp.setActivationPolicy(newValue ? .regular : .accessory)
+                        }
 
                     Toggle("Launch at Login", isOn: $launchAtLogin)
                         .tint(.reflexPurple)
                         .font(.caption)
                         .foregroundColor(.white.opacity(0.8))
+                        .onChange(of: launchAtLogin) { _, newValue in
+                            do {
+                                if newValue {
+                                    try SMAppService.mainApp.register()
+                                } else {
+                                    try SMAppService.mainApp.unregister()
+                                }
+                            } catch {
+                                print("Failed to update login item: \(error)")
+                                // Revert toggle on failure
+                                launchAtLogin = !newValue
+                            }
+                        }
                 }
             }
 
@@ -248,7 +275,7 @@ struct SettingsView: View {
             // Version
             HStack {
                 Spacer()
-                Text("Reflex v1.0.0 — Built with ❤️ for focus")
+                Text("Reflex v\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0") — Built with ❤️ for focus")
                     .font(.caption2)
                     .foregroundColor(.white.opacity(0.3))
                 Spacer()

@@ -30,6 +30,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         return false
     }
 
+    func applicationWillTerminate(_ notification: Notification) {
+        NotificationCenter.default.post(name: .appWillTerminate, object: nil)
+    }
+
     func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         willPresent notification: UNNotification,
@@ -86,4 +90,6 @@ extension Notification.Name {
     static let dismissBreak = Notification.Name("com.reflex.dismissBreak")
     static let endBreakEarly = Notification.Name("com.reflex.endBreakEarly")
     static let navigateToDashboardTab = Notification.Name("com.reflex.navigateToDashboardTab")
+    static let showOnboarding = Notification.Name("com.reflex.showOnboarding")
+    static let appWillTerminate = Notification.Name("com.reflex.appWillTerminate")
 }

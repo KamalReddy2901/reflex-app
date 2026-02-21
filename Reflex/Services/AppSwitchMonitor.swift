@@ -6,6 +6,9 @@ import Combine
 class AppSwitchMonitor: ObservableObject {
     @Published var metrics = AppSwitchMetrics()
 
+    /// Total number of app/window switches in the current session.
+    var totalSwitches: Int { switchTimestamps.count }
+
     private var switchTimestamps: [Date] = []
     private var currentAppStartTime: Date = .now
     private var appUsageMap: [String: TimeInterval] = [:]
