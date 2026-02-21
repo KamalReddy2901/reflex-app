@@ -75,25 +75,9 @@ Break durations are configurable (2, 5, or 10 minutes). Breathing exercises can 
 - **No analytics** — no telemetry of any kind
 - All data stored locally in `~/Library/Application Support/Reflex/`
 
-## Building from Source
-
-```bash
-# Install xcodegen if you don't have it
-brew install xcodegen
-
-# Clone and build
-git clone https://github.com/YOUR_USERNAME/reflex.git
-cd reflex
-xcodegen generate
-open Reflex.xcodeproj
-# Press ⌘R in Xcode to build and run
-```
-
-Requires Xcode 16+ and macOS 15.0+ SDK.
-
 ## License
 
-MIT — do whatever you want with it.
+Reflex is closed-source. All rights reserved.
 
 ---
 
