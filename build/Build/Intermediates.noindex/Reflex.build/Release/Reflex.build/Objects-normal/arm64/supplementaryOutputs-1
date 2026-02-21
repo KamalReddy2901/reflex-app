@@ -1,0 +1,12 @@
+{
+  "/Users/kamal/Desktop/reflex/Reflex/Services/AccessibilityPermissionService.swift" : {
+    "abi-baseline-json" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/Reflex.abi.json",
+    "const-values" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/Reflex-primary.swiftconstvalues",
+    "dependencies" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/Reflex-primary.d",
+    "diagnostics" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/Reflex-primary.dia",
+    "objc-header" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/Reflex-Swift.h",
+    "swiftdoc" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/Reflex.swiftdoc",
+    "swiftmodule" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/Reflex.swiftmodule",
+    "swiftsourceinfo" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/Reflex.swiftsourceinfo"
+  }
+}

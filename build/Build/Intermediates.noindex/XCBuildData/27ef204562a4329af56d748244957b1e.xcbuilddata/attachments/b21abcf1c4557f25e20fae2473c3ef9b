@@ -1,0 +1,176 @@
+{
+  "" : {
+    "const-values" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/Reflex-primary.swiftconstvalues",
+    "dependencies" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/Reflex-primary.d",
+    "diagnostics" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/Reflex-primary.dia",
+    "emit-module-dependencies" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/Reflex-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/Reflex-primary-emit-module.dia",
+    "pch" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/Reflex-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/Reflex-primary.swiftdeps"
+  },
+  "/Users/kamal/Desktop/reflex/Reflex/AppDelegate.swift" : {
+    "index-unit-output-path" : "/Reflex.build/Release/Reflex.build/Objects-normal/arm64/AppDelegate.o",
+    "llvm-bc" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/AppDelegate.bc",
+    "object" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/AppDelegate.o"
+  },
+  "/Users/kamal/Desktop/reflex/Reflex/ML/CognitiveLoadPredictor.swift" : {
+    "index-unit-output-path" : "/Reflex.build/Release/Reflex.build/Objects-normal/arm64/CognitiveLoadPredictor.o",
+    "llvm-bc" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/CognitiveLoadPredictor.bc",
+    "object" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/CognitiveLoadPredictor.o"
+  },
+  "/Users/kamal/Desktop/reflex/Reflex/ML/FeatureExtractor.swift" : {
+    "index-unit-output-path" : "/Reflex.build/Release/Reflex.build/Objects-normal/arm64/FeatureExtractor.o",
+    "llvm-bc" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/FeatureExtractor.bc",
+    "object" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/FeatureExtractor.o"
+  },
+  "/Users/kamal/Desktop/reflex/Reflex/Models/CognitiveLoadLevel.swift" : {
+    "index-unit-output-path" : "/Reflex.build/Release/Reflex.build/Objects-normal/arm64/CognitiveLoadLevel.o",
+    "llvm-bc" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/CognitiveLoadLevel.bc",
+    "object" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/CognitiveLoadLevel.o"
+  },
+  "/Users/kamal/Desktop/reflex/Reflex/Models/InputMetrics.swift" : {
+    "index-unit-output-path" : "/Reflex.build/Release/Reflex.build/Objects-normal/arm64/InputMetrics.o",
+    "llvm-bc" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/InputMetrics.bc",
+    "object" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/InputMetrics.o"
+  },
+  "/Users/kamal/Desktop/reflex/Reflex/Models/NavigationState.swift" : {
+    "index-unit-output-path" : "/Reflex.build/Release/Reflex.build/Objects-normal/arm64/NavigationState.o",
+    "llvm-bc" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/NavigationState.bc",
+    "object" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/NavigationState.o"
+  },
+  "/Users/kamal/Desktop/reflex/Reflex/Models/SessionData.swift" : {
+    "index-unit-output-path" : "/Reflex.build/Release/Reflex.build/Objects-normal/arm64/SessionData.o",
+    "llvm-bc" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/SessionData.bc",
+    "object" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/SessionData.o"
+  },
+  "/Users/kamal/Desktop/reflex/Reflex/ReflexApp.swift" : {
+    "index-unit-output-path" : "/Reflex.build/Release/Reflex.build/Objects-normal/arm64/ReflexApp.o",
+    "llvm-bc" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/ReflexApp.bc",
+    "object" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/ReflexApp.o"
+  },
+  "/Users/kamal/Desktop/reflex/Reflex/Services/AccessibilityPermissionService.swift" : {
+    "index-unit-output-path" : "/Reflex.build/Release/Reflex.build/Objects-normal/arm64/AccessibilityPermissionService.o",
+    "llvm-bc" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/AccessibilityPermissionService.bc",
+    "object" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/AccessibilityPermissionService.o"
+  },
+  "/Users/kamal/Desktop/reflex/Reflex/Services/AppSwitchMonitor.swift" : {
+    "index-unit-output-path" : "/Reflex.build/Release/Reflex.build/Objects-normal/arm64/AppSwitchMonitor.o",
+    "llvm-bc" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/AppSwitchMonitor.bc",
+    "object" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/AppSwitchMonitor.o"
+  },
+  "/Users/kamal/Desktop/reflex/Reflex/Services/BreakReminderService.swift" : {
+    "index-unit-output-path" : "/Reflex.build/Release/Reflex.build/Objects-normal/arm64/BreakReminderService.o",
+    "llvm-bc" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/BreakReminderService.bc",
+    "object" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/BreakReminderService.o"
+  },
+  "/Users/kamal/Desktop/reflex/Reflex/Services/CognitiveLoadEngine.swift" : {
+    "index-unit-output-path" : "/Reflex.build/Release/Reflex.build/Objects-normal/arm64/CognitiveLoadEngine.o",
+    "llvm-bc" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/CognitiveLoadEngine.bc",
+    "object" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/CognitiveLoadEngine.o"
+  },
+  "/Users/kamal/Desktop/reflex/Reflex/Services/DataPersistenceService.swift" : {
+    "index-unit-output-path" : "/Reflex.build/Release/Reflex.build/Objects-normal/arm64/DataPersistenceService.o",
+    "llvm-bc" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/DataPersistenceService.bc",
+    "object" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/DataPersistenceService.o"
+  },
+  "/Users/kamal/Desktop/reflex/Reflex/Services/EventMonitorService.swift" : {
+    "index-unit-output-path" : "/Reflex.build/Release/Reflex.build/Objects-normal/arm64/EventMonitorService.o",
+    "llvm-bc" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/EventMonitorService.bc",
+    "object" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/EventMonitorService.o"
+  },
+  "/Users/kamal/Desktop/reflex/Reflex/Services/KeystrokeAnalyzer.swift" : {
+    "index-unit-output-path" : "/Reflex.build/Release/Reflex.build/Objects-normal/arm64/KeystrokeAnalyzer.o",
+    "llvm-bc" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/KeystrokeAnalyzer.bc",
+    "object" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/KeystrokeAnalyzer.o"
+  },
+  "/Users/kamal/Desktop/reflex/Reflex/Services/MouseBehaviorAnalyzer.swift" : {
+    "index-unit-output-path" : "/Reflex.build/Release/Reflex.build/Objects-normal/arm64/MouseBehaviorAnalyzer.o",
+    "llvm-bc" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/MouseBehaviorAnalyzer.bc",
+    "object" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/MouseBehaviorAnalyzer.o"
+  },
+  "/Users/kamal/Desktop/reflex/Reflex/Utilities/Constants.swift" : {
+    "index-unit-output-path" : "/Reflex.build/Release/Reflex.build/Objects-normal/arm64/Constants.o",
+    "llvm-bc" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/Constants.bc",
+    "object" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/Constants.o"
+  },
+  "/Users/kamal/Desktop/reflex/Reflex/Utilities/Extensions.swift" : {
+    "index-unit-output-path" : "/Reflex.build/Release/Reflex.build/Objects-normal/arm64/Extensions.o",
+    "llvm-bc" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/Extensions.bc",
+    "object" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/Extensions.o"
+  },
+  "/Users/kamal/Desktop/reflex/Reflex/Utilities/RingBuffer.swift" : {
+    "index-unit-output-path" : "/Reflex.build/Release/Reflex.build/Objects-normal/arm64/RingBuffer.o",
+    "llvm-bc" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/RingBuffer.bc",
+    "object" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/RingBuffer.o"
+  },
+  "/Users/kamal/Desktop/reflex/Reflex/Views/BreakNotificationPopup.swift" : {
+    "index-unit-output-path" : "/Reflex.build/Release/Reflex.build/Objects-normal/arm64/BreakNotificationPopup.o",
+    "llvm-bc" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/BreakNotificationPopup.bc",
+    "object" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/BreakNotificationPopup.o"
+  },
+  "/Users/kamal/Desktop/reflex/Reflex/Views/BreakOverlayWindow.swift" : {
+    "index-unit-output-path" : "/Reflex.build/Release/Reflex.build/Objects-normal/arm64/BreakOverlayWindow.o",
+    "llvm-bc" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/BreakOverlayWindow.bc",
+    "object" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/BreakOverlayWindow.o"
+  },
+  "/Users/kamal/Desktop/reflex/Reflex/Views/Components/CognitiveLoadRing.swift" : {
+    "index-unit-output-path" : "/Reflex.build/Release/Reflex.build/Objects-normal/arm64/CognitiveLoadRing.o",
+    "llvm-bc" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/CognitiveLoadRing.bc",
+    "object" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/CognitiveLoadRing.o"
+  },
+  "/Users/kamal/Desktop/reflex/Reflex/Views/Components/GlassMorphicCard.swift" : {
+    "index-unit-output-path" : "/Reflex.build/Release/Reflex.build/Objects-normal/arm64/GlassMorphicCard.o",
+    "llvm-bc" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/GlassMorphicCard.bc",
+    "object" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/GlassMorphicCard.o"
+  },
+  "/Users/kamal/Desktop/reflex/Reflex/Views/Components/MeshGradientBackground.swift" : {
+    "index-unit-output-path" : "/Reflex.build/Release/Reflex.build/Objects-normal/arm64/MeshGradientBackground.o",
+    "llvm-bc" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/MeshGradientBackground.bc",
+    "object" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/MeshGradientBackground.o"
+  },
+  "/Users/kamal/Desktop/reflex/Reflex/Views/Components/MetricTile.swift" : {
+    "index-unit-output-path" : "/Reflex.build/Release/Reflex.build/Objects-normal/arm64/MetricTile.o",
+    "llvm-bc" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/MetricTile.bc",
+    "object" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/MetricTile.o"
+  },
+  "/Users/kamal/Desktop/reflex/Reflex/Views/CursorFollowerWindow.swift" : {
+    "index-unit-output-path" : "/Reflex.build/Release/Reflex.build/Objects-normal/arm64/CursorFollowerWindow.o",
+    "llvm-bc" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/CursorFollowerWindow.bc",
+    "object" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/CursorFollowerWindow.o"
+  },
+  "/Users/kamal/Desktop/reflex/Reflex/Views/DashboardView.swift" : {
+    "index-unit-output-path" : "/Reflex.build/Release/Reflex.build/Objects-normal/arm64/DashboardView.o",
+    "llvm-bc" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/DashboardView.bc",
+    "object" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/DashboardView.o"
+  },
+  "/Users/kamal/Desktop/reflex/Reflex/Views/InsightsView.swift" : {
+    "index-unit-output-path" : "/Reflex.build/Release/Reflex.build/Objects-normal/arm64/InsightsView.o",
+    "llvm-bc" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/InsightsView.bc",
+    "object" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/InsightsView.o"
+  },
+  "/Users/kamal/Desktop/reflex/Reflex/Views/MenuBarView.swift" : {
+    "index-unit-output-path" : "/Reflex.build/Release/Reflex.build/Objects-normal/arm64/MenuBarView.o",
+    "llvm-bc" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/MenuBarView.bc",
+    "object" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/MenuBarView.o"
+  },
+  "/Users/kamal/Desktop/reflex/Reflex/Views/PermissionRequestView.swift" : {
+    "index-unit-output-path" : "/Reflex.build/Release/Reflex.build/Objects-normal/arm64/PermissionRequestView.o",
+    "llvm-bc" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/PermissionRequestView.bc",
+    "object" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/PermissionRequestView.o"
+  },
+  "/Users/kamal/Desktop/reflex/Reflex/Views/SessionHistoryView.swift" : {
+    "index-unit-output-path" : "/Reflex.build/Release/Reflex.build/Objects-normal/arm64/SessionHistoryView.o",
+    "llvm-bc" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/SessionHistoryView.bc",
+    "object" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/SessionHistoryView.o"
+  },
+  "/Users/kamal/Desktop/reflex/Reflex/Views/SettingsView.swift" : {
+    "index-unit-output-path" : "/Reflex.build/Release/Reflex.build/Objects-normal/arm64/SettingsView.o",
+    "llvm-bc" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/SettingsView.bc",
+    "object" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/SettingsView.o"
+  },
+  "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/DerivedSources/GeneratedAssetSymbols.swift" : {
+    "index-unit-output-path" : "/Reflex.build/Release/Reflex.build/Objects-normal/arm64/GeneratedAssetSymbols.o",
+    "llvm-bc" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/GeneratedAssetSymbols.bc",
+    "object" : "/Users/kamal/Desktop/reflex/build/Build/Intermediates.noindex/Reflex.build/Release/Reflex.build/Objects-normal/arm64/GeneratedAssetSymbols.o"
+  }
+}

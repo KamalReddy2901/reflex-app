@@ -1,0 +1,16 @@
+{
+  "source": "/Users/kamal/Desktop/reflex/Reflex/Views/Components/CognitiveLoadRing.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 73
+        }
+      }
+    ]
+  },
+  "version": 1
+}

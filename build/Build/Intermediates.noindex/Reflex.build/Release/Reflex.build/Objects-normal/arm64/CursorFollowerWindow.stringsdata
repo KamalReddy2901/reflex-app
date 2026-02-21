@@ -1,0 +1,16 @@
+{
+  "source": "/Users/kamal/Desktop/reflex/Reflex/Views/CursorFollowerWindow.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 157
+        }
+      }
+    ]
+  },
+  "version": 1
+}

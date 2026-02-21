@@ -1,0 +1,128 @@
+{
+  "source": "/Users/kamal/Desktop/reflex/Reflex/Views/MenuBarView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Reflex",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 33
+        }
+      },
+      {
+        "comment": "",
+        "key": "·",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 44
+        }
+      },
+      {
+        "comment": "",
+        "key": "Calibrating...",
+        "location": {
+          "startingColumn": 57,
+          "startingLine": 39
+        }
+      },
+      {
+        "comment": "",
+        "key": "Monitoring",
+        "location": {
+          "startingColumn": 76,
+          "startingLine": 39
+        }
+      },
+      {
+        "comment": "",
+        "key": "Test break overlay",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 162
+        }
+      },
+      {
+        "comment": "",
+        "key": "Dashboard",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 145
+        }
+      },
+      {
+        "comment": "",
+        "key": "2 minutes",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 165
+        }
+      },
+      {
+        "comment": "",
+        "key": "5 minutes",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 166
+        }
+      },
+      {
+        "comment": "",
+        "key": "10 minutes",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 167
+        }
+      },
+      {
+        "comment": "",
+        "key": "Take Break",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 169
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld break%@ taken today",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 181
+        }
+      },
+      {
+        "comment": "",
+        "key": "Quit Reflex",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 194
+        }
+      },
+      {
+        "comment": "",
+        "key": "Accessibility Access Required",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 213
+        }
+      },
+      {
+        "comment": "",
+        "key": "Reflex needs accessibility permissions to monitor your typing and mouse patterns. No personal data is recorded.",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 217
+        }
+      },
+      {
+        "comment": "",
+        "key": "Grant Access",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 222
+        }
+      }
+    ]
+  },
+  "version": 1
+}

@@ -1,0 +1,40 @@
+{
+  "source": "/Users/kamal/Desktop/reflex/Reflex/ReflexApp.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Reflex Dashboard",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 44
+        }
+      },
+      {
+        "comment": "",
+        "key": "Initializing...",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 35
+        }
+      },
+      {
+        "comment": "",
+        "key": "Initializing...",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 55
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 69
+        }
+      }
+    ]
+  },
+  "version": 1
+}
