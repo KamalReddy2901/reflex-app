@@ -79,6 +79,7 @@ class BreakReminderService: ObservableObject {
         cursorFollower.show(countdownSeconds: preBreakCountdown)
 
         // Show top-right notification popup
+        notificationPopup.mode = .breakReminder
         notificationPopup.show(
             loadScore: loadScore,
             minutesAtHighLoad: minutesAtHighLoad,
