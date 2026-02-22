@@ -7,8 +7,8 @@
 /* ── GitHub Release API ──────────────────────────────────── */
 const REPO = 'KamalReddy2901/reflex';
 const API_URL = `https://api.github.com/repos/${REPO}/releases/latest`;
-const FALLBACK_VERSION = 'v2.0.1';
-const FALLBACK_DMG = `https://github.com/${REPO}/releases/latest/download/Reflex-2.0.1.dmg`;
+const FALLBACK_VERSION = 'v2.0.2';
+const FALLBACK_DMG = `https://github.com/${REPO}/releases/latest/download/Reflex-2.0.2.dmg`;
 
 async function fetchLatestRelease() {
   try {
