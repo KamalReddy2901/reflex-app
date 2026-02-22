@@ -7,7 +7,7 @@ class AppSwitchMonitor: ObservableObject {
     @Published var metrics = AppSwitchMetrics()
 
     /// Total number of app/window switches in the current session.
-    var totalSwitches: Int { switchTimestamps.count }
+    private(set) var totalSwitches: Int = 0
 
     private var switchTimestamps: [Date] = []
     private var currentAppStartTime: Date = .now
@@ -98,10 +98,12 @@ class AppSwitchMonitor: ObservableObject {
 
         var focusedWindow: AnyObject?
         let result = AXUIElementCopyAttributeValue(appRef, kAXFocusedWindowAttribute as CFString, &focusedWindow)
-        guard result == .success else { return }
+        guard result == .success, let focusedWindow else { return }
 
+        // focusedWindow is guaranteed to be AXUIElement when result == .success
+        let windowRef = focusedWindow as! AXUIElement
         var titleValue: AnyObject?
-        AXUIElementCopyAttributeValue(focusedWindow as! AXUIElement, kAXTitleAttribute as CFString, &titleValue)
+        AXUIElementCopyAttributeValue(windowRef, kAXTitleAttribute as CFString, &titleValue)
         let windowTitle = (titleValue as? String) ?? ""
 
         // If the window title changed within the same app, count as context switch
@@ -114,6 +116,7 @@ class AppSwitchMonitor: ObservableObject {
     }
 
     private func recordContextSwitch(at time: Date) {
+        totalSwitches += 1
         switchTimestamps.append(time)
 
         let cutoff = time.addingTimeInterval(-ReflexConstants.appSwitchWindowSeconds)
@@ -122,8 +125,10 @@ class AppSwitchMonitor: ObservableObject {
 
     private func updateMetrics() {
         let now = Date()
+        // Use windowed time (capped at appSwitchWindowSeconds) for rate calculation
         let elapsed = now.timeIntervalSince(windowStart)
-        let minutesElapsed = max(elapsed / 60.0, 0.1)
+        let windowSeconds = min(elapsed, ReflexConstants.appSwitchWindowSeconds)
+        let minutesElapsed = max(windowSeconds / 60.0, 0.1)
 
         metrics.switchesPerMinute = Double(switchTimestamps.count) / minutesElapsed
         metrics.uniqueAppsInWindow = max(Set(appUsageMap.keys).count, 1)
@@ -152,6 +157,7 @@ class AppSwitchMonitor: ObservableObject {
     }
 
     func reset() {
+        totalSwitches = 0
         switchTimestamps.removeAll()
         appUsageMap.removeAll()
         currentAppStartTime = .now

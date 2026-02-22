@@ -41,7 +41,9 @@ class HeuristicPredictor: CognitiveLoadPredictor {
             + pauseScore * 0.10
             + scrollScore * 0.10
 
-        return Int(min(100, max(0, score * 100)))
+        let raw = score * 100
+        guard raw.isFinite else { return 0 }
+        return Int(min(100, max(0, raw)))
     }
 }
 

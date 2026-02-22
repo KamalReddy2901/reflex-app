@@ -6,9 +6,23 @@ class DataPersistenceService: ObservableObject {
     @Published var currentSession: SessionData?
 
     private let fileManager = FileManager.default
+    private var autoSaveTimer: Timer?
 
     init() {
         loadSessions()
+        startAutoSaveTimer()
+    }
+
+    deinit {
+        autoSaveTimer?.invalidate()
+    }
+
+    private func startAutoSaveTimer() {
+        autoSaveTimer = Timer.scheduledTimer(withTimeInterval: 60.0, repeats: true) { [weak self] _ in
+            Task { @MainActor in
+                self?.saveCurrentSession()
+            }
+        }
     }
 
     // MARK: - Session Management
@@ -34,6 +48,9 @@ class DataPersistenceService: ObservableObject {
         sessions.append(session)
         saveSessions()
         currentSession = nil
+        
+        let currentUrl = getSessionsDirectory().appendingPathComponent("current_session.json")
+        try? fileManager.removeItem(at: currentUrl)
     }
 
     func updateCurrentSession(loadSample: LoadSample) {
@@ -61,13 +78,46 @@ class DataPersistenceService: ObservableObject {
         }
     }
 
-    private func loadSessions() {
-        let url = getSessionsDirectory().appendingPathComponent("sessions.json")
-        guard let data = try? Data(contentsOf: url),
-              let loaded = try? JSONDecoder().decode([SessionData].self, from: data) else {
-            return
+    private func saveCurrentSession() {
+        guard let currentSession = currentSession else { return }
+        let directory = getSessionsDirectory()
+        do {
+            try fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
+            let url = directory.appendingPathComponent("current_session.json")
+            let data = try JSONEncoder().encode(currentSession)
+            try data.write(to: url)
+        } catch {
+            print("Failed to save current session: \(error)")
         }
-        sessions = loaded
+    }
+
+    private func loadSessions() {
+        let directory = getSessionsDirectory()
+        let url = directory.appendingPathComponent("sessions.json")
+        
+        do {
+            let data = try Data(contentsOf: url)
+            sessions = try JSONDecoder().decode([SessionData].self, from: data)
+        } catch {
+            print("Failed to load sessions or file doesn't exist: \(error)")
+            sessions = []
+        }
+        
+        let currentUrl = directory.appendingPathComponent("current_session.json")
+        if let data = try? Data(contentsOf: currentUrl),
+           let loadedCurrent = try? JSONDecoder().decode(SessionData.self, from: data) {
+            // If there's an unfinished session from a previous run, we can either resume it or end it.
+            // Let's end it and add it to history to avoid data loss.
+            var recoveredSession = loadedCurrent
+            recoveredSession.endTime = .now
+            if !recoveredSession.loadSamples.isEmpty {
+                recoveredSession.averageLoad = Double(recoveredSession.loadSamples.map(\.score).reduce(0, +)) / Double(recoveredSession.loadSamples.count)
+                recoveredSession.peakLoad = recoveredSession.loadSamples.map(\.score).max() ?? 0
+            }
+            sessions.append(recoveredSession)
+            saveSessions()
+            try? fileManager.removeItem(at: currentUrl)
+        }
     }
 
     // MARK: - Analytics

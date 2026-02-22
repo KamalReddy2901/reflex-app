@@ -232,6 +232,14 @@ struct ReflexApp: App {
             }
         }
 
+        NotificationCenter.default.addObserver(
+            forName: .breakEnded, object: nil, queue: .main
+        ) { _ in
+            Task { @MainActor in
+                self.loadEngine?.recordBreakTaken()
+            }
+        }
+
         // Eye rest observers
         NotificationCenter.default.addObserver(
             forName: .startEyeRest, object: nil, queue: .main
@@ -271,7 +279,7 @@ struct ReflexApp: App {
         NotificationCenter.default.addObserver(
             forName: .appWillTerminate, object: nil, queue: .main
         ) { _ in
-            Task { @MainActor in
+            MainActor.assumeIsolated {
                 if let engine = self.loadEngine {
                     self.persistenceService.endCurrentSession(
                         loadHistory: engine.loadHistory,
@@ -287,7 +295,6 @@ struct ReflexApp: App {
     private func setupBreakTriggerMonitor(engine: CognitiveLoadEngine) {
         // Track if natural break was already credited for current idle period
         var naturalBreakCredited = false
-        var lastActiveMinutes = 0
 
         Timer.scheduledTimer(withTimeInterval: ReflexConstants.activityCheckInterval, repeats: true) { _ in
             Task { @MainActor in
@@ -340,8 +347,6 @@ struct ReflexApp: App {
 
                 // 5. Hydration reminder check
                 self.breakService.checkHydrationReminder()
-
-                lastActiveMinutes = activeMinutes
             }
         }
     }

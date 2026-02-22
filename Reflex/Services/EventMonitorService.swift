@@ -35,7 +35,7 @@ class EventMonitorService: ObservableObject {
 
         // Mouse movement monitor
         globalMouseMonitor = NSEvent.addGlobalMonitorForEvents(
-            matching: [.mouseMoved, .leftMouseDown, .leftMouseUp, .rightMouseDown, .leftMouseDragged]
+            matching: [.mouseMoved, .leftMouseDown, .leftMouseUp, .rightMouseDown, .rightMouseUp, .leftMouseDragged]
         ) { [weak self] event in
             Task { @MainActor in
                 self?.handleMouseEvent(event)
@@ -97,7 +97,7 @@ class EventMonitorService: ObservableObject {
             onMouseMoved?(location, now)
         case .leftMouseDown, .rightMouseDown:
             onMouseDown?(now)
-        case .leftMouseUp:
+        case .leftMouseUp, .rightMouseUp:
             onMouseUp?(now)
         default:
             break
@@ -106,6 +106,7 @@ class EventMonitorService: ObservableObject {
 
     private func handleScrollEvent(_ event: NSEvent) {
         let now = Date()
+        lastMouseEvent = now
         onScrollWheel?(event.scrollingDeltaX, event.scrollingDeltaY, now)
     }
 

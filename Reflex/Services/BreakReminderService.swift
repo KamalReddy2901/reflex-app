@@ -45,6 +45,9 @@ class BreakReminderService: ObservableObject {
     private var focusTimer: Timer?
     private var eyeRestTimer: Timer?
     private var eyeRestPreTimer: Timer?
+    private var breakDismissWorkItem: DispatchWorkItem?
+    private var skipDismissWorkItem: DispatchWorkItem?
+    private var eyeRestDismissWorkItem: DispatchWorkItem?
     private var reminderEnabled: Bool = true
     private var reminderInterval: TimeInterval = ReflexConstants.breakReminderDuration
 
@@ -173,10 +176,16 @@ class BreakReminderService: ObservableObject {
         breakTimer = nil
 
         overlayController.showCompleted()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 4) { [weak self] in
-            self?.overlayController.dismiss()
-            self?.showBreakOverlay = false
+        breakDismissWorkItem?.cancel()
+        let workItem = DispatchWorkItem { [weak self] in
+            guard let self = self, !self.isOnBreak else { return }
+            self.overlayController.dismiss()
+            self.showBreakOverlay = false
         }
+        breakDismissWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4, execute: workItem)
+        
+        NotificationCenter.default.post(name: .breakEnded, object: nil)
     }
 
     /// User chose to skip break entirely — show gentle message
@@ -193,10 +202,14 @@ class BreakReminderService: ObservableObject {
         showBreakOverlay = true
 
         // Auto-dismiss after 5 seconds
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
-            self?.overlayController.dismiss()
-            self?.showBreakOverlay = false
+        skipDismissWorkItem?.cancel()
+        let workItem = DispatchWorkItem { [weak self] in
+            guard let self = self, !self.isOnBreak else { return }
+            self.overlayController.dismiss()
+            self.showBreakOverlay = false
         }
+        skipDismissWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5, execute: workItem)
     }
 
     /// User ended break early
@@ -218,6 +231,9 @@ class BreakReminderService: ObservableObject {
         notificationPopup.dismiss()
         preBreakTimer?.invalidate()
         preBreakTimer = nil
+        breakTimer?.invalidate()
+        breakTimer = nil
+        isOnBreak = false
         showBreakOverlay = false
         overlayController.dismiss()
 
@@ -234,6 +250,11 @@ class BreakReminderService: ObservableObject {
         notificationPopup.dismiss()
         preBreakTimer?.invalidate()
         preBreakTimer = nil
+        breakTimer?.invalidate()
+        breakTimer = nil
+        snoozeTimer?.invalidate()
+        snoozeTimer = nil
+        isOnBreak = false
         showBreakOverlay = false
         overlayController.dismiss()
     }
@@ -313,10 +334,14 @@ class BreakReminderService: ObservableObject {
         eyeRestTimer = nil
 
         eyeRestOverlayController.showCompleted()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in
-            self?.eyeRestOverlayController.dismiss()
-            self?.showEyeRestOverlay = false
+        eyeRestDismissWorkItem?.cancel()
+        let workItem = DispatchWorkItem { [weak self] in
+            guard let self = self, !self.isEyeResting else { return }
+            self.eyeRestOverlayController.dismiss()
+            self.showEyeRestOverlay = false
         }
+        eyeRestDismissWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3, execute: workItem)
     }
 
     /// User skipped eye rest

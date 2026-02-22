@@ -92,6 +92,7 @@ extension Notification.Name {
     static let skipBreak = Notification.Name("com.reflex.skipBreak")
     static let dismissBreak = Notification.Name("com.reflex.dismissBreak")
     static let endBreakEarly = Notification.Name("com.reflex.endBreakEarly")
+    static let breakEnded = Notification.Name("com.reflex.breakEnded")
     static let navigateToDashboardTab = Notification.Name("com.reflex.navigateToDashboardTab")
     static let showOnboarding = Notification.Name("com.reflex.showOnboarding")
     static let appWillTerminate = Notification.Name("com.reflex.appWillTerminate")

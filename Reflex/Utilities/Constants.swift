@@ -40,7 +40,7 @@ enum ReflexConstants {
     static let fatigueMaxBonus: Double = 25
     static let fatiguePeakMinutes: Double = 120
 
-    // MARK: - Eye Rest (20-20-20 Rule)
+    // MARK: - Eye Rest (20-20-20 Rule — relaxed default: every 40 min)
     static let eyeRestDefaultIntervalMinutes = 40
     static let eyeRestDuration: TimeInterval = 20
     static let eyeRestPreCountdown: Int = 15

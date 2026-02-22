@@ -117,7 +117,8 @@ extension Double {
     }
 
     var formattedDuration: String {
-        let totalSeconds = Int(self)
+        guard self.isFinite else { return "—" }
+        let totalSeconds = Int(max(0, self))
         let hours = totalSeconds / 3600
         let minutes = (totalSeconds % 3600) / 60
         let seconds = totalSeconds % 60
@@ -135,8 +136,10 @@ extension Double {
 extension TimeInterval {
     /// Formats seconds as "M:SS" (e.g. 65 → "1:05")
     var formattedMinutesSeconds: String {
-        let mins = Int(self) / 60
-        let secs = Int(self) % 60
+        guard self.isFinite else { return "0:00" }
+        let total = Int(max(0, self))
+        let mins = total / 60
+        let secs = total % 60
         return String(format: "%d:%02d", mins, secs)
     }
 }

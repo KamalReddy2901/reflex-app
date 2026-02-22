@@ -57,6 +57,7 @@ class CognitiveLoadEngine: ObservableObject {
     }
 
     func startEngine() {
+        updateTimer?.invalidate()
         updateTimer = Timer.scheduledTimer(withTimeInterval: ReflexConstants.loadSampleInterval, repeats: true) { [weak self] _ in
             Task { @MainActor in
                 self?.computeLoad()
@@ -161,6 +162,7 @@ class CognitiveLoadEngine: ObservableObject {
     }
 
     private func normalizeScore(value: Double, low: Double, high: Double, baseline: Double?) -> Double {
+        guard value.isFinite else { return 0 }
         let ref = baseline ?? low
         let adjustedLow = min(ref, low)
         let range = high - adjustedLow
@@ -214,8 +216,8 @@ class CognitiveLoadEngine: ObservableObject {
 
         if idleDuration >= ReflexConstants.naturalBreakThreshold {
             // User has been idle for 2+ minutes — this counts as a natural break
+            lastBreakOrIdleTime = now
             if continuousActiveMinutes > 0 {
-                lastBreakOrIdleTime = now
                 continuousActiveMinutes = 0
                 hasTriggeredTimedBreak = false
                 hasTriggeredBreak = false

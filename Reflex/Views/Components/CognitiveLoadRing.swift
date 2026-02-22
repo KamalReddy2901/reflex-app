@@ -8,7 +8,6 @@ struct CognitiveLoadRing: View {
 
     @State private var animatedProgress: CGFloat = 0
     @State private var pulseScale: CGFloat = 1.0
-    @State private var glowOpacity: CGFloat = 0.3
 
     init(score: Int, size: CGFloat = 140, lineWidth: CGFloat = 12, showLabel: Bool = true) {
         self.score = score
@@ -89,19 +88,29 @@ struct CognitiveLoadRing: View {
             }
 
             if score > 60 {
-                withAnimation(
-                    .easeInOut(duration: ReflexConstants.pulseAnimationDuration)
-                        .repeatForever(autoreverses: true)
-                ) {
-                    pulseScale = 1.08
-                    glowOpacity = 0.5
-                }
+                startPulse()
             }
         }
         .onChange(of: score) { _, newValue in
             withAnimation(.easeInOut(duration: 0.6)) {
                 animatedProgress = CGFloat(newValue) / 100.0
             }
+            if newValue > 60 {
+                startPulse()
+            } else {
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    pulseScale = 1.0
+                }
+            }
+        }
+    }
+
+    private func startPulse() {
+        withAnimation(
+            .easeInOut(duration: ReflexConstants.pulseAnimationDuration)
+                .repeatForever(autoreverses: true)
+        ) {
+            pulseScale = 1.08
         }
     }
 }

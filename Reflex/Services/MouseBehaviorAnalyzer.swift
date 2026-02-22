@@ -59,12 +59,20 @@ class MouseBehaviorAnalyzer: ObservableObject {
 
     private func updateMetrics() {
         let elapsed = Date.now.timeIntervalSince(windowStart)
-        let minutesElapsed = max(elapsed / 60.0, 0.1)
+        // Cap denominator at 5 minutes so scroll frequency stays responsive
+        let windowSeconds = min(elapsed, ReflexConstants.appSwitchWindowSeconds)
+        let minutesElapsed = max(windowSeconds / 60.0, 0.1)
+
+        var currentIdle: TimeInterval = 0
+        let timeSinceLastActivity = Date.now.timeIntervalSince(lastActivityTime)
+        if timeSinceLastActivity > idleThreshold {
+            currentIdle = timeSinceLastActivity
+        }
 
         metrics.averageVelocity = velocities.mean
         metrics.velocityVariance = velocities.variance
         metrics.jitterLevel = MouseMetrics.JitterLevel.from(variance: velocities.variance)
-        metrics.idleTime = idleAccumulator
+        metrics.idleTime = idleAccumulator + currentIdle
         metrics.scrollFrequency = Double(scrollCount) / minutesElapsed
         metrics.scrollDirectionChanges = directionChanges
         metrics.totalDistance = totalDistance
