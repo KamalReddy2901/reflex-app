@@ -60,6 +60,7 @@ class BreakOverlayWindowController: ObservableObject {
         p.titleVisibility = .hidden
         p.ignoresMouseEvents = false
         p.hidesOnDeactivate = false
+        p.appearance = NSAppearance(named: .darkAqua)
 
         let overlayView = BreakOverlayFullscreen(controller: self)
         let hostingView = NSHostingView(rootView: overlayView)

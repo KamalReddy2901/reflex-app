@@ -6,6 +6,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
     private var rightClickMonitor: Any?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Force dark mode globally — Reflex is dark-only
+        NSApp.appearance = NSAppearance(named: .darkAqua)
+
         UNUserNotificationCenter.current().delegate = self
 
         let breakCategory = UNNotificationCategory(

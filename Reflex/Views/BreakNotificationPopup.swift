@@ -56,6 +56,7 @@ class BreakNotificationPopupController: ObservableObject {
         p.hidesOnDeactivate = false
         p.titlebarAppearsTransparent = true
         p.titleVisibility = .hidden
+        p.appearance = NSAppearance(named: .darkAqua)
 
         let contentView = BreakNotificationPopupView(controller: self)
         let hostingView = NSHostingView(rootView: contentView)

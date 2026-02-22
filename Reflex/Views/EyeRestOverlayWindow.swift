@@ -54,6 +54,7 @@ class EyeRestOverlayWindowController: ObservableObject {
         p.titleVisibility = .hidden
         p.ignoresMouseEvents = false
         p.hidesOnDeactivate = false
+        p.appearance = NSAppearance(named: .darkAqua)
 
         let overlayView = EyeRestOverlayView(controller: self)
         let hostingView = NSHostingView(rootView: overlayView)

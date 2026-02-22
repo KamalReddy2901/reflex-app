@@ -40,9 +40,11 @@ struct ReflexApp: App {
                     .environmentObject(keystrokeAnalyzer)
                     .environmentObject(mouseAnalyzer)
                     .environmentObject(appSwitchMonitor)
+                    .preferredColorScheme(.dark)
             } else {
                 ProgressView("Initializing...")
                     .padding()
+                    .preferredColorScheme(.dark)
             }
         } label: {
             menuBarLabel
@@ -60,8 +62,10 @@ struct ReflexApp: App {
                     .environmentObject(keystrokeAnalyzer)
                     .environmentObject(mouseAnalyzer)
                     .environmentObject(appSwitchMonitor)
+                    .preferredColorScheme(.dark)
             } else {
                 ProgressView("Initializing...")
+                    .preferredColorScheme(.dark)
             }
         }
         .windowStyle(.hiddenTitleBar)
@@ -72,6 +76,7 @@ struct ReflexApp: App {
         Window("Welcome to Reflex", id: "onboarding") {
             OnboardingView(isComplete: $onboardingComplete)
                 .environmentObject(permissionService)
+                .preferredColorScheme(.dark)
                 .onChange(of: onboardingComplete) { _, complete in
                     if complete {
                         hasCompletedOnboarding = true

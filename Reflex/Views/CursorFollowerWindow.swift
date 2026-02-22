@@ -43,6 +43,7 @@ class CursorFollowerWindowController: ObservableObject {
         p.hasShadow = false
         p.hidesOnDeactivate = false
         p.ignoresMouseEvents = true // Click-through!
+        p.appearance = NSAppearance(named: .darkAqua)
 
         let contentView = CursorFollowerView(controller: self)
         let hostingView = NSHostingView(rootView: contentView)
