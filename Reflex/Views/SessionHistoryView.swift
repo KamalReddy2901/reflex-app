@@ -44,7 +44,7 @@ struct SessionHistoryView: View {
                     .font(.headline)
                     .foregroundColor(.white.opacity(0.6))
 
-                Text("Your session history will appear here as you use Reflex.")
+                Text("Your session history will appear here as you use Reflex Beta.")
                     .font(.caption)
                     .foregroundColor(.white.opacity(0.4))
                     .multilineTextAlignment(.center)

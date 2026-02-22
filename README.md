@@ -1,8 +1,8 @@
-# Reflex — Cognitive Load Monitor
+# Reflex Beta — Cognitive Load Monitor
 
 **Know when your brain needs a break. No wearable needed.**
 
-Reflex is a native macOS menu bar app that passively monitors your typing patterns, mouse behavior, app switching, and scroll activity to infer your cognitive load in real-time. It nudges you to take breaks before burnout hits.
+Reflex Beta is a native macOS menu bar app that passively monitors your typing patterns, mouse behavior, app switching, and scroll activity to infer your cognitive load in real-time. It nudges you to take breaks before burnout hits.
 
 ![macOS](https://img.shields.io/badge/macOS-15.0%2B-blue)
 ![Swift](https://img.shields.io/badge/Swift-5.9-orange)
@@ -40,9 +40,9 @@ Reflex is a native macOS menu bar app that passively monitors your typing patter
 
 ## Installation
 
-1. Download **Reflex-1.0.dmg** from [Releases](../../releases/latest)
-2. Open the DMG and drag **Reflex** to **Applications**
-3. **Right-click** Reflex.app → **Open** (required first time only since the app is not notarized)
+1. Download **Reflex-Beta-3.0.dmg** from [Releases](../../releases/latest)
+2. Open the DMG and drag **Reflex Beta** to **Applications**
+3. **Right-click** Reflex Beta.app → **Open** (required first time only since the app is not notarized)
 4. Click **Open** when macOS asks for confirmation
 5. Grant **Accessibility** permission when prompted — this is required for monitoring keyboard and mouse patterns
 
@@ -50,7 +50,7 @@ Reflex is a native macOS menu bar app that passively monitors your typing patter
 
 ## How It Works
 
-Reflex uses a weighted heuristic engine to compute cognitive load:
+Reflex Beta uses a weighted heuristic engine to compute cognitive load:
 
 ```
 Load Score = Typing Variance (25%)
@@ -66,13 +66,13 @@ Scores are smoothed with an exponential moving average and calibrated against yo
 
 ### Break System
 
-Reflex uses **three independent break triggers**:
+Reflex Beta uses **three independent break triggers**:
 
 1. **Cognitive load-based** — when accumulated high-load time reaches 5+ minutes in a 30-minute window
 2. **Time-based** — after 25 minutes of continuous activity (configurable: 20–60 min), regardless of load score
 3. **Eye rest** — every 40 minutes of focus (configurable: 20–60 min), a quick 20-second eye break
 
-When a break is triggered, Reflex:
+When a break is triggered, Reflex Beta:
 
 1. Shows a small **cursor-following countdown** ring (15–30s)
 2. Pops up a **notification card** with Start/Snooze/Skip options

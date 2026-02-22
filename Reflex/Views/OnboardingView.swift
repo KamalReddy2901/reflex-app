@@ -184,7 +184,7 @@ struct WelcomePage: View {
             }
 
             VStack(spacing: 14) {
-                Text("Welcome to Reflex")
+                Text("Welcome to Reflex Beta")
                     .font(.system(size: 34, weight: .bold, design: .rounded))
                     .foregroundColor(.white)
 
@@ -370,8 +370,8 @@ struct PermissionPage: View {
                     .contentTransition(.interpolate)
 
                 Text(permissionService.isGranted
-                     ? "Reflex can now monitor your input patterns.\nYou're all set!"
-                     : "Reflex needs accessibility access to monitor\ntyping and mouse patterns. No personal data is recorded."
+                     ? "Reflex Beta can now monitor your input patterns.\nYou're all set!"
+                     : "Reflex Beta needs accessibility access to monitor\ntyping and mouse patterns. No personal data is recorded."
                 )
                 .font(.system(size: 15, design: .rounded))
                 .foregroundColor(.white.opacity(0.5))
@@ -460,7 +460,7 @@ struct ReadyPage: View {
                     .font(.system(size: 34, weight: .bold, design: .rounded))
                     .foregroundColor(.white)
 
-                Text("Reflex lives in your menu bar.\nIt will start learning your baseline patterns\nand begin monitoring automatically.")
+                Text("Reflex Beta lives in your menu bar.\nIt will start learning your baseline patterns\nand begin monitoring automatically.")
                     .font(.system(size: 15, design: .rounded))
                     .foregroundColor(.white.opacity(0.5))
                     .multilineTextAlignment(.center)

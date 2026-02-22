@@ -74,7 +74,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
             }
 
             let menu = NSMenu()
-            menu.addItem(NSMenuItem(title: "Quit Reflex", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+            menu.addItem(NSMenuItem(title: "Quit Reflex Beta", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
 
             if let view = window.contentView {
                 NSMenu.popUpContextMenu(menu, with: event, for: view)

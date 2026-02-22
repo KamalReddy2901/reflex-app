@@ -47,7 +47,7 @@ struct PermissionRequestView: View {
                         .fontWeight(.bold)
                         .foregroundColor(.white)
 
-                    Text("Reflex needs accessibility permissions to monitor your typing rhythm and mouse patterns — the core signals used to understand your cognitive state.")
+                    Text("Reflex Beta needs accessibility permissions to monitor your typing rhythm and mouse patterns — the core signals used to understand your cognitive state.")
                         .font(.body)
                         .foregroundColor(.white.opacity(0.7))
                         .multilineTextAlignment(.center)

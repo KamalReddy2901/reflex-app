@@ -53,7 +53,7 @@ struct DashboardView: View {
                     .font(.system(size: 28))
                     .foregroundColor(.reflexPurple)
 
-                Text("Reflex")
+                Text("Reflex Beta")
                     .font(.title2)
                     .fontWeight(.bold)
                     .foregroundColor(.white)

@@ -30,7 +30,7 @@ struct MenuBarView: View {
             // Header
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Reflex")
+                    Text("Reflex Beta")
                         .font(.title3)
                         .fontWeight(.bold)
                         .foregroundColor(.white)
@@ -203,7 +203,7 @@ struct MenuBarView: View {
                 Button(action: {
                     NSApplication.shared.terminate(nil)
                 }) {
-                    Text("Quit Reflex")
+                    Text("Quit Reflex Beta")
                         .font(.caption2)
                         .foregroundColor(.white.opacity(0.25))
                 }
@@ -226,7 +226,7 @@ struct MenuBarView: View {
                 .font(.headline)
                 .foregroundColor(.white)
 
-            Text("Reflex needs accessibility permissions to monitor your typing and mouse patterns. No personal data is recorded.")
+            Text("Reflex Beta needs accessibility permissions to monitor your typing and mouse patterns. No personal data is recorded.")
                 .font(.caption)
                 .foregroundColor(.white.opacity(0.7))
                 .multilineTextAlignment(.center)
@@ -312,7 +312,7 @@ struct MenuBarView: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
                 NSApp.activate(ignoringOtherApps: true)
                 // Also find and bring dashboard window to front explicitly
-                for window in NSApp.windows where window.title == "Reflex Dashboard" {
+                for window in NSApp.windows where window.title == "Reflex Beta Dashboard" {
                     window.makeKeyAndOrderFront(nil)
                 }
             }

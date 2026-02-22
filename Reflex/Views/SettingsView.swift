@@ -334,7 +334,7 @@ struct SettingsView: View {
                         .fontWeight(.medium)
                         .foregroundColor(.white.opacity(0.8))
 
-                    Text("All data is stored locally on your Mac. Reflex never transmits any data to external servers. No keystrokes are recorded — only timing patterns.")
+                    Text("All data is stored locally on your Mac. Reflex Beta never transmits any data to external servers. No keystrokes are recorded — only timing patterns.")
                         .font(.caption)
                         .foregroundColor(.white.opacity(0.6))
 
@@ -376,7 +376,7 @@ struct SettingsView: View {
                     }) {
                         HStack {
                             Image(systemName: "power")
-                            Text("Quit Reflex")
+                            Text("Quit Reflex Beta")
                             Spacer()
                         }
                         .font(.caption)
@@ -389,7 +389,7 @@ struct SettingsView: View {
             // Version
             HStack {
                 Spacer()
-                Text("Reflex v\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0") — Built with ❤️ for focus")
+                Text("Reflex Beta v\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0") — Built with ❤️ for focus")
                     .font(.caption2)
                     .foregroundColor(.white.opacity(0.3))
                 Spacer()
@@ -410,7 +410,7 @@ struct SettingsView: View {
                 loadEngine.reset()
             }
         } message: {
-            Text("This will restart the calibration process. Reflex will recalibrate to your current patterns over the next 30 minutes.")
+            Text("This will restart the calibration process. Reflex Beta will recalibrate to your current patterns over the next 30 minutes.")
         }
     }
 

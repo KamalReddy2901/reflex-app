@@ -25,6 +25,7 @@ struct ReflexApp: App {
     @AppStorage("hydrationIntervalMinutes") private var hydrationIntervalMinutes = ReflexConstants.hydrationDefaultIntervalMinutes
     @AppStorage("breakRemindersEnabled") private var breakRemindersEnabled = true
     @AppStorage("breakIntervalMinutes") private var breakIntervalMinutes = 15
+    @AppStorage("monitoringEnabled") private var monitoringEnabled = true
 
     @State private var loadEngine: CognitiveLoadEngine?
     @State private var isInitialized = false
@@ -54,7 +55,7 @@ struct ReflexApp: App {
         .menuBarExtraStyle(.window)
 
         // Main Dashboard Window
-        Window("Reflex Dashboard", id: "dashboard") {
+        Window("Reflex Beta Dashboard", id: "dashboard") {
             if let engine = loadEngine {
                 DashboardView()
                     .environmentObject(engine)
@@ -75,7 +76,7 @@ struct ReflexApp: App {
         .commandsRemoved()
 
         // Onboarding Window
-        Window("Welcome to Reflex", id: "onboarding") {
+        Window("Welcome to Reflex Beta", id: "onboarding") {
             OnboardingView(isComplete: $onboardingComplete)
                 .environmentObject(permissionService)
                 .preferredColorScheme(.dark)
@@ -185,6 +186,7 @@ struct ReflexApp: App {
     private func startMonitoring(engine: CognitiveLoadEngine) {
         eventMonitor.startMonitoring()
         appSwitchMonitor.startMonitoring()
+        guard monitoringEnabled else { return }
         engine.startEngine()
     }
 

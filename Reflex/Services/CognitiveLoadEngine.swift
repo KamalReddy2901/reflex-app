@@ -7,7 +7,7 @@ class CognitiveLoadEngine: ObservableObject {
     @Published var currentScore: Int = 0
     @Published var loadLevel: CognitiveLoadLevel = .flow
     @Published var smoothedScore: Double = 0
-    @Published var suggestion: String = "Start working — Reflex is learning your patterns."
+    @Published var suggestion: String = "Start working — Reflex Beta is learning your patterns."
     @Published var loadHistory: [LoadSample] = []
     @Published private(set) var sessionLoadHistory: [LoadSample] = []
     @Published var isCalibrating: Bool = true

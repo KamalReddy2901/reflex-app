@@ -1,14 +1,14 @@
 /* ═══════════════════════════════════════════════════════════
-   Reflex Landing Page — Main Script
+   Reflex Beta Landing Page — Main Script
    ═══════════════════════════════════════════════════════════ */
 
 'use strict';
 
 /* ── GitHub Release API ──────────────────────────────────── */
 const REPO = 'KamalReddy2901/reflex';
-const API_URL = `https://api.github.com/repos/${REPO}/releases/latest`;
-const FALLBACK_VERSION = 'v2.0.2';
-const FALLBACK_DMG = `https://github.com/${REPO}/releases/latest/download/Reflex-2.0.2.dmg`;
+const API_URL = `https://api.github.com/repos/${REPO}/releases`;
+const FALLBACK_VERSION = 'v3.0-beta';
+const FALLBACK_DMG = `https://github.com/${REPO}/releases/latest/download/Reflex-Beta-3.0.dmg`;
 
 async function fetchLatestRelease() {
   try {
@@ -17,7 +17,9 @@ async function fetchLatestRelease() {
       cache: 'no-cache'
     });
     if (!res.ok) throw new Error(`GitHub API: ${res.status}`);
-    const data = await res.json();
+    const releases = await res.json();
+    const data = releases[0]; // latest release (includes pre-releases)
+    if (!data) throw new Error('No releases found');
 
     const version = data.tag_name || FALLBACK_VERSION;
     const cleanVersion = version.startsWith('v') ? version : `v${version}`;

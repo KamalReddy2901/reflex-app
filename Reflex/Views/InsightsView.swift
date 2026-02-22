@@ -237,7 +237,7 @@ struct InsightsView: View {
         }
 
         if tips.isEmpty {
-            tips.append("Keep using Reflex to build your cognitive load profile. Personalized insights will appear after a few sessions.")
+            tips.append("Keep using Reflex Beta to build your cognitive load profile. Personalized insights will appear after a few sessions.")
             tips.append("Remember: the goal isn't to minimize load, but to manage it sustainably.")
         }
 
