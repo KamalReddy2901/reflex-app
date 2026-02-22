@@ -50,6 +50,9 @@ class BreakReminderService: ObservableObject {
     private var eyeRestDismissWorkItem: DispatchWorkItem?
     private var reminderEnabled: Bool = true
     private var reminderInterval: TimeInterval = ReflexConstants.breakReminderDuration
+    /// Accumulated high-load minutes required before a load-based break is triggered.
+    /// Updated by setReminderInterval(_:) so the "Remind after N min" setting is respected.
+    var accumulatedHighLoadThresholdMinutes: Int = 5
 
     // User preferences (synced from @AppStorage in views)
     var selectedBreakDurationMinutes: Int = 5
@@ -240,7 +243,11 @@ class BreakReminderService: ObservableObject {
         snoozeTimer?.invalidate()
         snoozeTimer = Timer.scheduledTimer(withTimeInterval: TimeInterval(minutes * 60), repeats: false) { [weak self] _ in
             Task { @MainActor in
-                self?.sendBreakReminder(loadScore: 70, minutesAtHighLoad: minutes)
+                guard let self = self else { return }
+                // Always show a standard break reminder after snooze (never carry over
+                // a stale eye-rest or timedBreak popup mode from the original trigger).
+                self.notificationPopup.mode = .breakReminder
+                self.sendBreakReminder(loadScore: 70, minutesAtHighLoad: minutes)
             }
         }
     }
@@ -435,6 +442,9 @@ class BreakReminderService: ObservableObject {
 
     func setReminderInterval(_ interval: TimeInterval) {
         reminderInterval = interval
+        // Wire the interval to the high-load accumulation threshold so the
+        // "Remind after N min of high load" setting in Settings is actually honoured.
+        accumulatedHighLoadThresholdMinutes = max(1, Int(interval / 60))
     }
 
     /// Formatted session duration string

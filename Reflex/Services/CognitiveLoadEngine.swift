@@ -1,4 +1,5 @@
 import Foundation
+import AppKit
 import Combine
 
 @MainActor
@@ -40,6 +41,7 @@ class CognitiveLoadEngine: ObservableObject {
     private var calibrationSamples: [BehaviorSnapshot] = []
     private var lastBreakOrIdleTime: Date = .now
     private var highLoadTimestamps: [Date] = [] // sliding window for accumulated tracking
+    private var wakeObserver: Any?
 
     struct BehaviorBaseline: Codable {
         var typingIntervalMean: Double
@@ -64,11 +66,28 @@ class CognitiveLoadEngine: ObservableObject {
                 self?.computeLoad()
             }
         }
+
+        // Clear accumulated high-load state whenever the Mac wakes from sleep.
+        // Without this, pre-sleep high-load timestamps (up to 30 min old) would
+        // persist and could immediately fire a break reminder on wake.
+        wakeObserver = NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.didWakeNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.recordBreakTaken()
+            }
+        }
     }
 
     func stopEngine() {
         updateTimer?.invalidate()
         updateTimer = nil
+        if let observer = wakeObserver {
+            NSWorkspace.shared.notificationCenter.removeObserver(observer)
+            wakeObserver = nil
+        }
     }
 
     private func computeLoad() {
@@ -366,5 +385,8 @@ class CognitiveLoadEngine: ObservableObject {
 
     deinit {
         updateTimer?.invalidate()
+        if let observer = wakeObserver {
+            NSWorkspace.shared.notificationCenter.removeObserver(observer)
+        }
     }
 }

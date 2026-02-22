@@ -23,6 +23,8 @@ struct ReflexApp: App {
     @AppStorage("focusBreakIntervalMinutes") private var focusBreakIntervalMinutes = ReflexConstants.defaultFocusBreakIntervalMinutes
     @AppStorage("hydrationReminderEnabled") private var hydrationReminderEnabled = false
     @AppStorage("hydrationIntervalMinutes") private var hydrationIntervalMinutes = ReflexConstants.hydrationDefaultIntervalMinutes
+    @AppStorage("breakRemindersEnabled") private var breakRemindersEnabled = true
+    @AppStorage("breakIntervalMinutes") private var breakIntervalMinutes = 15
 
     @State private var loadEngine: CognitiveLoadEngine?
     @State private var isInitialized = false
@@ -273,6 +275,11 @@ struct ReflexApp: App {
         breakService.focusBreakIntervalMinutes = focusBreakIntervalMinutes
         breakService.hydrationReminderEnabled = hydrationReminderEnabled
         breakService.hydrationIntervalMinutes = hydrationIntervalMinutes
+        // Sync break-reminder enable/disable and the high-load threshold so saved
+        // preferences are respected even on a cold app restart (not just when the
+        // user opens SettingsView and triggers .onChange handlers).
+        breakService.setReminderEnabled(breakRemindersEnabled)
+        breakService.setReminderInterval(TimeInterval(breakIntervalMinutes * 60))
         breakService.startSession()
 
         // Save session data on app termination
@@ -314,12 +321,22 @@ struct ReflexApp: App {
                     naturalBreakCredited = false
                 }
 
+                // Keep persistence snapshot current regardless of idle state so
+                // autosaves and crash-recovery files always have up-to-date stats.
+                self.persistenceService.updateCurrentSessionSnapshot(
+                    loadHistory: engine.sessionLoadHistory,
+                    breaksTaken: self.breakService.breaksTaken,
+                    totalKeystrokes: self.keystrokeAnalyzer.metrics.totalKeystrokes,
+                    totalAppSwitches: self.appSwitchMonitor.totalSwitches
+                )
+
                 // Only check triggers when user is active
                 guard !isIdle else { return }
 
                 // 2. Cognitive load-based break (existing, improved)
-                // Trigger on 5+ accumulated minutes of high load (not just continuous)
-                if engine.accumulatedHighLoadMinutes >= 5 && !engine.hasTriggeredBreak {
+                // Trigger on N+ accumulated minutes of high load where N comes from
+                // the user's "Remind after N min of high load" setting.
+                if engine.accumulatedHighLoadMinutes >= breakService.accumulatedHighLoadThresholdMinutes && !engine.hasTriggeredBreak {
                     self.breakService.notificationPopup.mode = .breakReminder
                     self.breakService.sendBreakReminder(
 
@@ -329,8 +346,9 @@ struct ReflexApp: App {
                     engine.hasTriggeredBreak = true
                 }
 
-                // Reset load-based trigger when accumulated high load drops
-                if engine.accumulatedHighLoadMinutes < 2 {
+                // Reset load-based trigger when accumulated high load drops below half
+                // the threshold, providing hysteresis to stop repeated re-triggering.
+                if engine.accumulatedHighLoadMinutes < (breakService.accumulatedHighLoadThresholdMinutes / 2) {
                     engine.hasTriggeredBreak = false
                 }
 
@@ -347,14 +365,6 @@ struct ReflexApp: App {
 
                 // 5. Hydration reminder check
                 self.breakService.checkHydrationReminder()
-
-                // 6. Keep persistence snapshot current for autosave/crash recovery
-                self.persistenceService.updateCurrentSessionSnapshot(
-                    loadHistory: engine.sessionLoadHistory,
-                    breaksTaken: self.breakService.breaksTaken,
-                    totalKeystrokes: self.keystrokeAnalyzer.metrics.totalKeystrokes,
-                    totalAppSwitches: self.appSwitchMonitor.totalSwitches
-                )
             }
         }
     }

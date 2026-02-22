@@ -310,7 +310,9 @@ struct BreakActiveView: View {
     @State private var breathPhase: BreathPhase = .inhale
     @State private var breathScale: CGFloat = 0.6
     @State private var breathOpacity: Double = 0.3
-    @State private var breathCycleTimer: Timer?
+    /// Cancellable Task replaces DispatchQueue.main.asyncAfter so the breathing
+    /// cycle is properly torn down when the break overlay disappears.
+    @State private var breathCycleTask: Task<Void, Never>? = nil
 
     enum BreathPhase: String {
         case inhale = "Breathe in..."
@@ -402,35 +404,38 @@ struct BreakActiveView: View {
             .padding(.top, 20)
         }
         .onAppear { startBreathingCycle() }
-        .onDisappear { breathCycleTimer?.invalidate() }
+        .onDisappear {
+            breathCycleTask?.cancel()
+            breathCycleTask = nil
+        }
     }
 
     private func startBreathingCycle() {
-        func cycle() {
-            // Inhale (4s)
-            breathPhase = .inhale
-            withAnimation(.easeInOut(duration: 4.0)) {
-                breathScale = 1.0
-                breathOpacity = 0.6
-            }
-
-            DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) {
-                // Hold (4s)
-                breathPhase = .hold
-                DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) {
-                    // Exhale (4s)
-                    breathPhase = .exhale
-                    withAnimation(.easeInOut(duration: 4.0)) {
-                        breathScale = 0.6
-                        breathOpacity = 0.3
-                    }
+        breathCycleTask?.cancel()
+        breathCycleTask = Task { @MainActor in
+            while !Task.isCancelled {
+                // Inhale (4 s)
+                breathPhase = .inhale
+                withAnimation(.easeInOut(duration: 4.0)) {
+                    breathScale = 1.0
+                    breathOpacity = 0.6
                 }
-            }
-        }
+                try? await Task.sleep(for: .seconds(4))
+                guard !Task.isCancelled else { break }
 
-        cycle()
-        breathCycleTimer = Timer.scheduledTimer(withTimeInterval: 12.0, repeats: true) { _ in
-            Task { @MainActor in cycle() }
+                // Hold (4 s)
+                breathPhase = .hold
+                try? await Task.sleep(for: .seconds(4))
+                guard !Task.isCancelled else { break }
+
+                // Exhale (4 s)
+                breathPhase = .exhale
+                withAnimation(.easeInOut(duration: 4.0)) {
+                    breathScale = 0.6
+                    breathOpacity = 0.3
+                }
+                try? await Task.sleep(for: .seconds(4))
+            }
         }
     }
 }
