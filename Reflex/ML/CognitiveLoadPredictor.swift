@@ -95,18 +95,13 @@ class TrainingDataCollector {
         var csv = headers
         for (snapshot, label) in samples {
             let features = FeatureExtractor.extractFeatures(from: snapshot)
-            let values = [
-                features["typing_interval_mean"]!,
-                features["typing_interval_cv"]!,
-                features["backspace_ratio"]!,
-                features["pause_frequency"]!,
-                features["mouse_jitter"]!,
-                features["mouse_idle_ratio"]!,
-                features["scroll_direction_changes"]!,
-                features["app_switch_rate"]!,
-                features["unique_apps"]!,
-                features["rapid_switch_bursts"]!,
+            let keys = [
+                "typing_interval_mean", "typing_interval_cv", "backspace_ratio",
+                "pause_frequency", "mouse_jitter", "mouse_idle_ratio",
+                "scroll_direction_changes", "app_switch_rate", "unique_apps",
+                "rapid_switch_bursts"
             ]
+            let values = keys.map { features[$0] ?? 0.0 }
             csv += values.map { String(format: "%.6f", $0) }.joined(separator: ",")
             csv += ",\(label)\n"
         }

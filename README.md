@@ -40,7 +40,7 @@ Reflex Beta is a native macOS menu bar app that passively monitors your typing p
 
 ## Installation
 
-1. Download **Reflex-Beta-3.0.dmg** from [Releases](../../releases/latest)
+1. Download **Reflex-Beta-3.1.dmg** from [Releases](../../releases/latest)
 2. Open the DMG and drag **Reflex Beta** to **Applications**
 3. **Right-click** Reflex Beta.app → **Open** (required first time only since the app is not notarized)
 4. Click **Open** when macOS asks for confirmation

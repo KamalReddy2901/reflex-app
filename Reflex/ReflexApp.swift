@@ -207,6 +207,7 @@ struct ReflexApp: App {
             if let minutes = notification.userInfo?["minutes"] as? Int {
                 Task { @MainActor in
                     breakService.snooze(minutes: minutes)
+                    self.loadEngine?.recordBreakSkipped()
                 }
             }
         }
@@ -216,6 +217,7 @@ struct ReflexApp: App {
         ) { _ in
             Task { @MainActor in
                 breakService.skipBreak()
+                self.loadEngine?.recordBreakSkipped()
             }
         }
 
@@ -350,16 +352,19 @@ struct ReflexApp: App {
 
                 // Reset load-based trigger when accumulated high load drops below half
                 // the threshold, providing hysteresis to stop repeated re-triggering.
-                if engine.accumulatedHighLoadMinutes < (breakService.accumulatedHighLoadThresholdMinutes / 2) {
+                if engine.hasTriggeredBreak &&
+                   engine.accumulatedHighLoadMinutes < (breakService.accumulatedHighLoadThresholdMinutes / 2) {
                     engine.hasTriggeredBreak = false
                 }
 
                 // 3. Time-based break reminder (independent of cognitive load)
                 if self.breakService.checkTimedBreak(
                     continuousActiveMinutes: activeMinutes,
-                    hasTriggeredTimedBreak: engine.hasTriggeredTimedBreak
+                    hasTriggeredTimedBreak: engine.hasTriggeredTimedBreak,
+                    lastTriggerMinutes: engine.lastTimedBreakTriggerMinutes
                 ) {
                     engine.hasTriggeredTimedBreak = true
+                    engine.lastTimedBreakTriggerMinutes = activeMinutes
                 }
 
                 // 4. Eye rest check

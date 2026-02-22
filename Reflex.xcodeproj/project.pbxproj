@@ -39,6 +39,7 @@
 		BF157532D3B35A55F38640F4 /* KeystrokeAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1851B2410BAB357EF47DEA0 /* KeystrokeAnalyzer.swift */; };
 		C67AA3BD7B441D47A68C0144 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60D8F0336A19CE407EC17E0C /* AppDelegate.swift */; };
 		D028242FA03C8AE8D2FCE59C /* GlassMorphicCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB9DD3FB0B58D812225339A9 /* GlassMorphicCard.swift */; };
+		D0DAAFB8ABC30BBD4A2FFDA7 /* MoveToApplicationsWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01B7F654D6500822EE0C2ABE /* MoveToApplicationsWindow.swift */; };
 		D6397C986D3CD853A5F3B152 /* EyeRestOverlayWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFB9355CDD8E1EBDA28BD9D7 /* EyeRestOverlayWindow.swift */; };
 		DCCA218832EA40D0523D5EC8 /* DataPersistenceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10175329E8E20930D7BD340E /* DataPersistenceService.swift */; };
 		E5372DEE6F1740CE9DCAFEBB /* CognitiveLoadPredictor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56BE84680B54C49CA08EB3D7 /* CognitiveLoadPredictor.swift */; };
@@ -46,6 +47,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		01B7F654D6500822EE0C2ABE /* MoveToApplicationsWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoveToApplicationsWindow.swift; sourceTree = "<group>"; };
 		06C4AA818500F7F1C43B255F /* InputMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputMetrics.swift; sourceTree = "<group>"; };
 		084CBDD27415D0D48FA9C1D5 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		091D3C06CDC09C16B6E1ECD5 /* EventMonitorService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventMonitorService.swift; sourceTree = "<group>"; };
@@ -136,6 +138,7 @@
 				AFB9355CDD8E1EBDA28BD9D7 /* EyeRestOverlayWindow.swift */,
 				D0BB670B95ADFC01CA098C87 /* InsightsView.swift */,
 				174526262A8A43D23EBB6764 /* MenuBarView.swift */,
+				01B7F654D6500822EE0C2ABE /* MoveToApplicationsWindow.swift */,
 				5EA75C7FD93A15A9DDBEC7D4 /* OnboardingTriggerView.swift */,
 				113CB12E658BC487314E9FC9 /* OnboardingView.swift */,
 				D339CD3A13CD7E35388D0290 /* PermissionRequestView.swift */,
@@ -293,6 +296,7 @@
 				3A3780AF9D7CFB258EA515BD /* MeshGradientBackground.swift in Sources */,
 				9C44330D2C876DC86153D2DC /* MetricTile.swift in Sources */,
 				0E56C2A5B86795D538C9B57E /* MouseBehaviorAnalyzer.swift in Sources */,
+				D0DAAFB8ABC30BBD4A2FFDA7 /* MoveToApplicationsWindow.swift in Sources */,
 				91D311E418C1CB5659BF764C /* NavigationState.swift in Sources */,
 				1F13B815D12CFDD5E0C939E4 /* OnboardingTriggerView.swift in Sources */,
 				5BDFC04698D2339456E72B0C /* OnboardingView.swift in Sources */,

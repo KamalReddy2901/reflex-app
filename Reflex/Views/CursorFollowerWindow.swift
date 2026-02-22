@@ -7,7 +7,9 @@ import AppKit
 @MainActor
 class CursorFollowerWindowController: ObservableObject {
     private var panel: NSPanel?
-    private var trackingTimer: Timer?
+    private var displayTimer: DispatchSourceTimer?
+    private var mouseEventMonitor: Any?
+    private var localMouseEventMonitor: Any?
     private var spaceChangeObserver: Any?
     @Published var secondsRemaining: Int = 30
     @Published var totalSeconds: Int = 30
@@ -77,13 +79,39 @@ class CursorFollowerWindowController: ObservableObject {
             }
         }
 
-        // Track cursor position
-        trackingTimer = Timer.scheduledTimer(withTimeInterval: 1.0 / 30.0, repeats: true) { [weak self] _ in
+        // Event-driven cursor tracking: update position on every mouse move
+        // for zero-latency following (replaces timer-based polling)
+        mouseEventMonitor = NSEvent.addGlobalMonitorForEvents(
+            matching: [.mouseMoved, .leftMouseDragged, .rightMouseDragged]
+        ) { [weak self] _ in
             Task { @MainActor in
                 guard let self = self, let p = self.panel else { return }
                 self.positionNearCursor(p)
             }
         }
+        localMouseEventMonitor = NSEvent.addLocalMonitorForEvents(
+            matching: [.mouseMoved, .leftMouseDragged, .rightMouseDragged]
+        ) { [weak self] event in
+            Task { @MainActor in
+                guard let self = self, let p = self.panel else { return }
+                self.positionNearCursor(p)
+            }
+            return event
+        }
+
+        // Fallback display-linked timer at ~60fps to catch cases where
+        // mouse events don't fire (e.g., mouse stationary but user scrolled
+        // the screen or switched spaces)
+        let timer = DispatchSource.makeTimerSource(queue: .main)
+        timer.schedule(deadline: .now(), repeating: .milliseconds(16))
+        timer.setEventHandler { [weak self] in
+            MainActor.assumeIsolated {
+                guard let self = self, let p = self.panel else { return }
+                self.positionNearCursor(p)
+            }
+        }
+        timer.resume()
+        self.displayTimer = timer
     }
 
     func tick() {
@@ -100,8 +128,16 @@ class CursorFollowerWindowController: ObservableObject {
     }
 
     func dismiss() {
-        trackingTimer?.invalidate()
-        trackingTimer = nil
+        displayTimer?.cancel()
+        displayTimer = nil
+        if let monitor = mouseEventMonitor {
+            NSEvent.removeMonitor(monitor)
+            mouseEventMonitor = nil
+        }
+        if let monitor = localMouseEventMonitor {
+            NSEvent.removeMonitor(monitor)
+            localMouseEventMonitor = nil
+        }
         if let observer = spaceChangeObserver {
             NSWorkspace.shared.notificationCenter.removeObserver(observer)
             spaceChangeObserver = nil

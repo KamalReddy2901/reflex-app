@@ -35,7 +35,19 @@ class AccessibilityPermissionService: ObservableObject {
     private func startPolling() {
         pollTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] _ in
             Task { @MainActor in
-                self?.checkPermission()
+                guard let self = self else { return }
+                let wasGranted = self.isGranted
+                self.checkPermission()
+                // Once permission is granted, switch to a much slower poll
+                // (every 30s) just to detect revocation, instead of every 2s.
+                if !wasGranted && self.isGranted {
+                    self.pollTimer?.invalidate()
+                    self.pollTimer = Timer.scheduledTimer(withTimeInterval: 30.0, repeats: true) { [weak self] _ in
+                        Task { @MainActor in
+                            self?.checkPermission()
+                        }
+                    }
+                }
             }
         }
     }

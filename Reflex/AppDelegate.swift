@@ -27,6 +27,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
 
         // Right-click context menu on menu bar icon
         setupStatusItemRightClickMenu()
+
+        // Prompt user to move to /Applications if running from elsewhere
+        MoveToApplicationsController.checkAndPromptIfNeeded()
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {

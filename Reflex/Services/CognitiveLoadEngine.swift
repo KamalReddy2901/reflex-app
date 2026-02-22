@@ -25,6 +25,9 @@ class CognitiveLoadEngine: ObservableObject {
     var hasTriggeredBreak: Bool = false
     /// Whether a time-based break has been triggered for this focus period.
     var hasTriggeredTimedBreak: Bool = false
+    /// The continuousActiveMinutes value when the last timed break was triggered.
+    /// Used to re-trigger at multiples of the focus interval after skips.
+    var lastTimedBreakTriggerMinutes: Int = 0
 
     /// Sensitivity multiplier (0.0 = low sensitivity, 1.0 = high sensitivity).
     /// Applied to the raw score to make load detection more/less aggressive.
@@ -267,7 +270,17 @@ class CognitiveLoadEngine: ObservableObject {
         continuousActiveMinutes = 0
         hasTriggeredTimedBreak = false
         hasTriggeredBreak = false
+        lastTimedBreakTriggerMinutes = 0
         highLoadTimestamps.removeAll()
+    }
+
+    /// Called when user skips or snoozes a break — reset trigger flags so
+    /// a new break can fire after the next full interval elapses.
+    func recordBreakSkipped() {
+        hasTriggeredTimedBreak = false
+        hasTriggeredBreak = false
+        // Record current minutes so re-trigger waits for the next full interval
+        lastTimedBreakTriggerMinutes = continuousActiveMinutes
     }
 
     private func generateSuggestion() -> String {
@@ -384,6 +397,7 @@ class CognitiveLoadEngine: ObservableObject {
         highLoadTimestamps.removeAll()
         hasTriggeredBreak = false
         hasTriggeredTimedBreak = false
+        lastTimedBreakTriggerMinutes = 0
         baseline = nil
         isCalibrating = true
         calibrationStart = .now

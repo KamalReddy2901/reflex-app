@@ -83,8 +83,8 @@ class BreakReminderService: ObservableObject {
         cursorFollower.isVisible || notificationPopup.isVisible || isOnBreak || isEyeResting
     }
 
-    func sendBreakReminder(loadScore: Int, minutesAtHighLoad: Int) {
-        guard reminderEnabled, !isShowingAnyPrompt else { return }
+    func sendBreakReminder(loadScore: Int, minutesAtHighLoad: Int, force: Bool = false) {
+        guard force || (reminderEnabled && !isShowingAnyPrompt) else { return }
 
         // Show cursor-following countdown
         cursorFollower.show(countdownSeconds: preBreakCountdown)
@@ -266,11 +266,35 @@ class BreakReminderService: ObservableObject {
         overlayController.dismiss()
     }
 
+    /// Dismiss all prompts (cursor follower, notification popup, overlays) without
+    /// recording a break or skip. Used by test buttons to clear state before
+    /// showing a new prompt.
+    func dismissAllPrompts() {
+        cursorFollower.dismiss()
+        notificationPopup.dismiss()
+        preBreakTimer?.invalidate()
+        preBreakTimer = nil
+        eyeRestPreTimer?.invalidate()
+        eyeRestPreTimer = nil
+        isEyeResting = false
+        eyeRestTimer?.invalidate()
+        eyeRestTimer = nil
+        showEyeRestOverlay = false
+        eyeRestOverlayController.dismiss()
+        breakTimer?.invalidate()
+        breakTimer = nil
+        isOnBreak = false
+        showBreakOverlay = false
+        overlayController.dismiss()
+    }
+
     // MARK: - Eye Rest (20-20-20 Rule)
 
     /// Triggers the eye rest flow: cursor follower (15s) → popup → fullscreen overlay (20s)
-    func triggerEyeRest() {
-        guard eyeRestEnabled, !isShowingAnyPrompt else { return }
+    /// - Parameter force: When `true`, bypasses the `isShowingAnyPrompt` guard (for test buttons).
+    func triggerEyeRest(force: Bool = false) {
+        guard eyeRestEnabled || force else { return }
+        guard force || !isShowingAnyPrompt else { return }
 
         // Show cursor-following countdown (15 seconds)
         cursorFollower.show(countdownSeconds: ReflexConstants.eyeRestPreCountdown)
@@ -382,10 +406,16 @@ class BreakReminderService: ObservableObject {
     // MARK: - Time-Based Break Reminders
 
     /// Check if a time-based break should be triggered (independent of cognitive load)
-    func checkTimedBreak(continuousActiveMinutes: Int, hasTriggeredTimedBreak: Bool) -> Bool {
+    func checkTimedBreak(continuousActiveMinutes: Int, hasTriggeredTimedBreak: Bool, lastTriggerMinutes: Int) -> Bool {
         guard reminderEnabled, !isShowingAnyPrompt else { return false }
 
-        if continuousActiveMinutes >= focusBreakIntervalMinutes && !hasTriggeredTimedBreak {
+        // Trigger when continuous active time has passed at least one full interval
+        // since the last trigger (or since session start if no trigger yet).
+        // This allows re-triggering at multiples: 25min, 50min, 75min, etc.
+        let minutesSinceLastTrigger = continuousActiveMinutes - lastTriggerMinutes
+        if continuousActiveMinutes >= focusBreakIntervalMinutes &&
+           minutesSinceLastTrigger >= focusBreakIntervalMinutes &&
+           !hasTriggeredTimedBreak {
             // Set mode BEFORE calling sendBreakReminder (which no longer overrides it)
             notificationPopup.mode = .timedBreak(minutesFocused: continuousActiveMinutes)
             sendBreakReminder(

@@ -50,7 +50,7 @@ enum ReflexConstants {
 
     // MARK: - UI
     static let menuBarPopoverWidth: CGFloat = 340
-    static let menuBarPopoverHeight: CGFloat = 560
+    static let menuBarPopoverHeight: CGFloat = 640
     static let dashboardMinWidth: CGFloat = 800
     static let dashboardMinHeight: CGFloat = 600
     static let cardCornerRadius: CGFloat = 16

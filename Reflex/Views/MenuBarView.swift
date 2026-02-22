@@ -26,7 +26,8 @@ struct MenuBarView: View {
     // MARK: - Main Status
 
     private var mainStatusView: some View {
-        VStack(spacing: 12) {
+        ScrollView(.vertical, showsIndicators: false) {
+        VStack(spacing: 10) {
             // Header
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
@@ -68,10 +69,12 @@ struct MenuBarView: View {
                 HStack(spacing: 8) {
                     Image(systemName: suggestionIcon)
                         .foregroundColor(loadEngine.loadLevel.color)
+                        .frame(width: 16)
                     Text(loadEngine.suggestion)
                         .font(.caption)
                         .foregroundColor(.white.opacity(0.85))
-                        .lineLimit(3)
+                        .lineLimit(4)
+                        .fixedSize(horizontal: false, vertical: true)
                         .multilineTextAlignment(.leading)
                 }
             }
@@ -154,17 +157,26 @@ struct MenuBarView: View {
                 Spacer()
 
                 Button(action: {
-                    breakService.sendBreakReminder(loadScore: 80, minutesAtHighLoad: 15)
+                    // Dismiss any existing prompt first, then trigger break reminder
+                    breakService.dismissAllPrompts()
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                        breakService.notificationPopup.mode = .breakReminder
+                        breakService.sendBreakReminder(loadScore: 80, minutesAtHighLoad: 15, force: true)
+                    }
                 }) {
                     Image(systemName: "bell.badge")
                         .font(.caption)
                         .foregroundColor(.white.opacity(0.5))
                 }
                 .buttonStyle(.plain)
-                .help("Test break overlay")
+                .help("Test break reminder")
 
                 Button(action: {
-                    breakService.triggerEyeRest()
+                    // Dismiss any existing prompt first, then trigger eye rest
+                    breakService.dismissAllPrompts()
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                        breakService.triggerEyeRest(force: true)
+                    }
                 }) {
                     Image(systemName: "eye")
                         .font(.caption)
@@ -212,6 +224,7 @@ struct MenuBarView: View {
             }
         }
         .padding(16)
+        } // end ScrollView
     }
 
     // MARK: - Permission View
