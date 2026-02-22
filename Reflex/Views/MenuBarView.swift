@@ -140,8 +140,6 @@ struct MenuBarView: View {
                 .buttonStyle(.plain)
             }
 
-            Spacer()
-
             // Bottom Actions
             HStack(spacing: 8) {
                 Button(action: {
