@@ -17,6 +17,21 @@ class MouseBehaviorAnalyzer: ObservableObject {
     private var idleAccumulator: TimeInterval = 0
     private let idleThreshold: TimeInterval = 5.0
 
+    /// Windowed counters reset every 60 s so scroll frequency and direction-
+    /// change metrics stay responsive instead of growing unboundedly.
+    private var windowedScrollCount: Int = 0
+    private var windowedDirectionChanges: Int = 0
+    private var scrollWindowTimer: Timer?
+
+    init() {
+        scrollWindowTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
+            Task { @MainActor in
+                self?.windowedScrollCount = 0
+                self?.windowedDirectionChanges = 0
+            }
+        }
+    }
+
     func recordMouseMove(position: CGPoint, at time: Date) {
         if let lastPos = lastPosition, let lastTime = lastMoveTime {
             let dx = Double(position.x - lastPos.x)
@@ -44,12 +59,14 @@ class MouseBehaviorAnalyzer: ObservableObject {
 
     func recordScroll(deltaX: CGFloat, deltaY: CGFloat, at time: Date) {
         scrollCount += 1
+        windowedScrollCount += 1
         lastActivityTime = time
 
         if deltaY != 0 {
             let currentDirection: CGFloat = deltaY > 0 ? 1 : -1
             if lastScrollDirection != 0 && currentDirection != lastScrollDirection {
                 directionChanges += 1
+                windowedDirectionChanges += 1
             }
             lastScrollDirection = currentDirection
         }
@@ -73,8 +90,9 @@ class MouseBehaviorAnalyzer: ObservableObject {
         metrics.velocityVariance = velocities.variance
         metrics.jitterLevel = MouseMetrics.JitterLevel.from(variance: velocities.variance)
         metrics.idleTime = idleAccumulator + currentIdle
-        metrics.scrollFrequency = Double(scrollCount) / minutesElapsed
-        metrics.scrollDirectionChanges = directionChanges
+        // Use windowed counters so metrics don't inflate over long sessions
+        metrics.scrollFrequency = Double(windowedScrollCount) / minutesElapsed
+        metrics.scrollDirectionChanges = windowedDirectionChanges
         metrics.totalDistance = totalDistance
         metrics.timestamp = .now
     }
@@ -84,11 +102,17 @@ class MouseBehaviorAnalyzer: ObservableObject {
         lastPosition = nil
         lastMoveTime = nil
         scrollCount = 0
+        windowedScrollCount = 0
         lastScrollDirection = 0
         directionChanges = 0
+        windowedDirectionChanges = 0
         totalDistance = 0
         idleAccumulator = 0
         windowStart = .now
         metrics = MouseMetrics()
+    }
+
+    deinit {
+        scrollWindowTimer?.invalidate()
     }
 }

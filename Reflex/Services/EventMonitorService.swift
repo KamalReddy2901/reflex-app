@@ -77,9 +77,14 @@ class EventMonitorService: ObservableObject {
         switch event.type {
         case .keyDown:
             if event.keyCode == 51 {
+                // Backspace: fire only onBackspace (which internally calls
+                // recordKeystroke). Firing onKeyDown too would double-count
+                // the keystroke and inject a zero-interval artifact into
+                // the typing rhythm analysis.
                 onBackspace?(now)
+            } else {
+                onKeyDown?(now)
             }
-            onKeyDown?(now)
         case .keyUp:
             onKeyUp?(now)
         default:

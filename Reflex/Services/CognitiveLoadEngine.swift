@@ -67,6 +67,13 @@ class CognitiveLoadEngine: ObservableObject {
             }
         }
 
+        // Clean up any existing observer before (re-)registering so a double-
+        // call from the permission observer pathway doesn't leak one.
+        if let observer = wakeObserver {
+            NSWorkspace.shared.notificationCenter.removeObserver(observer)
+            wakeObserver = nil
+        }
+
         // Clear accumulated high-load state whenever the Mac wakes from sleep.
         // Without this, pre-sleep high-load timestamps (up to 30 min old) would
         // persist and could immediately fire a break reminder on wake.
