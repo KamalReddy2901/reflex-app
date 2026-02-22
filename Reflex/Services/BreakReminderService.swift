@@ -66,7 +66,7 @@ class BreakReminderService: ObservableObject {
         focusTimer?.invalidate()
         focusTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
             Task { @MainActor in
-                guard let self = self, !self.isOnBreak else { return }
+                guard let self = self, !self.isOnBreak, !self.isEyeResting else { return }
                 self.totalFocusSeconds += 1
             }
         }

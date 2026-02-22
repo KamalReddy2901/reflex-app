@@ -282,7 +282,7 @@ struct ReflexApp: App {
             MainActor.assumeIsolated {
                 if let engine = self.loadEngine {
                     self.persistenceService.endCurrentSession(
-                        loadHistory: engine.loadHistory,
+                        loadHistory: engine.sessionLoadHistory,
                         breaksTaken: self.breakService.breaksTaken,
                         totalKeystrokes: self.keystrokeAnalyzer.metrics.totalKeystrokes,
                         totalAppSwitches: self.appSwitchMonitor.totalSwitches
@@ -350,7 +350,7 @@ struct ReflexApp: App {
 
                 // 6. Keep persistence snapshot current for autosave/crash recovery
                 self.persistenceService.updateCurrentSessionSnapshot(
-                    loadHistory: engine.loadHistory,
+                    loadHistory: engine.sessionLoadHistory,
                     breaksTaken: self.breakService.breaksTaken,
                     totalKeystrokes: self.keystrokeAnalyzer.metrics.totalKeystrokes,
                     totalAppSwitches: self.appSwitchMonitor.totalSwitches

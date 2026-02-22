@@ -8,6 +8,7 @@ class CognitiveLoadEngine: ObservableObject {
     @Published var smoothedScore: Double = 0
     @Published var suggestion: String = "Start working — Reflex is learning your patterns."
     @Published var loadHistory: [LoadSample] = []
+    @Published private(set) var sessionLoadHistory: [LoadSample] = []
     @Published var isCalibrating: Bool = true
     @Published var minutesAtHighLoad: Int = 0
 
@@ -96,6 +97,7 @@ class CognitiveLoadEngine: ObservableObject {
         // Record sample
         let sample = LoadSample(timestamp: .now, score: currentScore, level: loadLevel)
         loadHistory.append(sample)
+        sessionLoadHistory.append(sample)
 
         // Keep only last hour of history
         let oneHourAgo = Date.now.addingTimeInterval(-3600)
@@ -346,6 +348,7 @@ class CognitiveLoadEngine: ObservableObject {
         smoothedScore = 0
         loadLevel = .flow
         loadHistory.removeAll()
+        sessionLoadHistory.removeAll()
         highLoadStart = nil
         minutesAtHighLoad = 0
         accumulatedHighLoadMinutes = 0
