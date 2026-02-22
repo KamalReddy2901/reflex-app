@@ -39,10 +39,10 @@
 		BF157532D3B35A55F38640F4 /* KeystrokeAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1851B2410BAB357EF47DEA0 /* KeystrokeAnalyzer.swift */; };
 		C67AA3BD7B441D47A68C0144 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60D8F0336A19CE407EC17E0C /* AppDelegate.swift */; };
 		D028242FA03C8AE8D2FCE59C /* GlassMorphicCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB9DD3FB0B58D812225339A9 /* GlassMorphicCard.swift */; };
+		D6397C986D3CD853A5F3B152 /* EyeRestOverlayWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFB9355CDD8E1EBDA28BD9D7 /* EyeRestOverlayWindow.swift */; };
 		DCCA218832EA40D0523D5EC8 /* DataPersistenceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10175329E8E20930D7BD340E /* DataPersistenceService.swift */; };
 		E5372DEE6F1740CE9DCAFEBB /* CognitiveLoadPredictor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56BE84680B54C49CA08EB3D7 /* CognitiveLoadPredictor.swift */; };
 		EA6E57D05B8BCE0A1CCE179D /* InputMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06C4AA818500F7F1C43B255F /* InputMetrics.swift */; };
-		F1A2B3C4D5E6F7081234ABCD /* EyeRestOverlayWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607081234ABCD /* EyeRestOverlayWindow.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -73,6 +73,7 @@
 		8990C8E245B384CD892B22C0 /* AccessibilityPermissionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityPermissionService.swift; sourceTree = "<group>"; };
 		969A5F7DD9FAC57B39CE995D /* MouseBehaviorAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MouseBehaviorAnalyzer.swift; sourceTree = "<group>"; };
 		98481F3EB392CF01B8D39CED /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		AFB9355CDD8E1EBDA28BD9D7 /* EyeRestOverlayWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EyeRestOverlayWindow.swift; sourceTree = "<group>"; };
 		B19B50FE40FAAAA58F039ED6 /* ReflexApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReflexApp.swift; sourceTree = "<group>"; };
 		BC8E8B6AC631BCC380336539 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		BEB77707C177D7208BBF42EC /* MeshGradientBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeshGradientBackground.swift; sourceTree = "<group>"; };
@@ -84,7 +85,6 @@
 		DB9DD3FB0B58D812225339A9 /* GlassMorphicCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassMorphicCard.swift; sourceTree = "<group>"; };
 		E1851B2410BAB357EF47DEA0 /* KeystrokeAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeystrokeAnalyzer.swift; sourceTree = "<group>"; };
 		E5E84214F3A05AE87489A5ED /* AppSwitchMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSwitchMonitor.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F607081234ABCD /* EyeRestOverlayWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EyeRestOverlayWindow.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -133,7 +133,7 @@
 				673C9001E0251E4C9B66CF9E /* BreakOverlayWindow.swift */,
 				4DF24419971CC0901ABDE8F8 /* CursorFollowerWindow.swift */,
 				785CD2F7BE5C7EBAE21D24C6 /* DashboardView.swift */,
-				A1B2C3D4E5F607081234ABCD /* EyeRestOverlayWindow.swift */,
+				AFB9355CDD8E1EBDA28BD9D7 /* EyeRestOverlayWindow.swift */,
 				D0BB670B95ADFC01CA098C87 /* InsightsView.swift */,
 				174526262A8A43D23EBB6764 /* MenuBarView.swift */,
 				5EA75C7FD93A15A9DDBEC7D4 /* OnboardingTriggerView.swift */,
@@ -282,8 +282,8 @@
 				3480E5EE74572B54BCED619E /* DashboardView.swift in Sources */,
 				DCCA218832EA40D0523D5EC8 /* DataPersistenceService.swift in Sources */,
 				93C4FAED9F18454AFA091A1F /* EventMonitorService.swift in Sources */,
-				F1A2B3C4D5E6F7081234ABCD /* EyeRestOverlayWindow.swift in Sources */,
 				A5B8BBD9B5FFD32E798D99F0 /* Extensions.swift in Sources */,
+				D6397C986D3CD853A5F3B152 /* EyeRestOverlayWindow.swift in Sources */,
 				1B93407DC257FC66415EA589 /* FeatureExtractor.swift in Sources */,
 				D028242FA03C8AE8D2FCE59C /* GlassMorphicCard.swift in Sources */,
 				EA6E57D05B8BCE0A1CCE179D /* InputMetrics.swift in Sources */,
@@ -324,7 +324,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.reflex.app;
-				PRODUCT_NAME = Reflex;
+				PRODUCT_NAME = "Reflex Beta";
 				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -468,7 +468,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.reflex.app;
-				PRODUCT_NAME = Reflex;
+				PRODUCT_NAME = "Reflex Beta";
 				SDKROOT = macosx;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_EMIT_LOC_STRINGS = YES;

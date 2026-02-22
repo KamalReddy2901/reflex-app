@@ -98,7 +98,7 @@ def create_dmg_background():
 
         if small_font:
             # Subtitle at bottom
-            bottom_text = "Reflex — Cognitive Load Monitor"
+            bottom_text = "Reflex Beta — Cognitive Load Monitor"
             bbox = small_font.getbbox(bottom_text)
             tw = bbox[2] - bbox[0]
             draw.text(((sw - tw) // 2, sh - 100), bottom_text,
