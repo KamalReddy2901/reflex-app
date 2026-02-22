@@ -57,6 +57,24 @@ class DataPersistenceService: ObservableObject {
         currentSession?.loadSamples.append(loadSample)
     }
 
+    func updateCurrentSessionSnapshot(loadHistory: [LoadSample], breaksTaken: Int, totalKeystrokes: Int, totalAppSwitches: Int) {
+        guard var session = currentSession else { return }
+        session.loadSamples = loadHistory
+        session.breaksTaken = breaksTaken
+        session.totalKeystrokes = totalKeystrokes
+        session.totalAppSwitches = totalAppSwitches
+
+        if !session.loadSamples.isEmpty {
+            session.averageLoad = Double(session.loadSamples.map(\.score).reduce(0, +)) / Double(session.loadSamples.count)
+            session.peakLoad = session.loadSamples.map(\.score).max() ?? 0
+        } else {
+            session.averageLoad = 0
+            session.peakLoad = 0
+        }
+
+        currentSession = session
+    }
+
     // MARK: - Persistence
 
     private func getSessionsDirectory() -> URL {

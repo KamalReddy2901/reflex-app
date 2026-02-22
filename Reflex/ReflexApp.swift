@@ -347,6 +347,14 @@ struct ReflexApp: App {
 
                 // 5. Hydration reminder check
                 self.breakService.checkHydrationReminder()
+
+                // 6. Keep persistence snapshot current for autosave/crash recovery
+                self.persistenceService.updateCurrentSessionSnapshot(
+                    loadHistory: engine.loadHistory,
+                    breaksTaken: self.breakService.breaksTaken,
+                    totalKeystrokes: self.keystrokeAnalyzer.metrics.totalKeystrokes,
+                    totalAppSwitches: self.appSwitchMonitor.totalSwitches
+                )
             }
         }
     }

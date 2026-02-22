@@ -100,8 +100,8 @@ class AppSwitchMonitor: ObservableObject {
         let result = AXUIElementCopyAttributeValue(appRef, kAXFocusedWindowAttribute as CFString, &focusedWindow)
         guard result == .success, let focusedWindow else { return }
 
-        // focusedWindow is guaranteed to be AXUIElement when result == .success
-        let windowRef = focusedWindow as! AXUIElement
+        guard CFGetTypeID(focusedWindow) == AXUIElementGetTypeID() else { return }
+        let windowRef = unsafeBitCast(focusedWindow, to: AXUIElement.self)
         var titleValue: AnyObject?
         AXUIElementCopyAttributeValue(windowRef, kAXTitleAttribute as CFString, &titleValue)
         let windowTitle = (titleValue as? String) ?? ""
