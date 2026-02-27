@@ -40,7 +40,7 @@ Reflex Beta is a native macOS menu bar app that passively monitors your typing p
 
 ## Installation
 
-1. Download **Reflex-Beta-3.1.dmg** from [Releases](../../releases/latest)
+1. Download the latest `.dmg` from [Releases](https://github.com/KamalReddy2901/reflex/releases/latest)
 2. Open the DMG and drag **Reflex Beta** to **Applications**
 3. **Right-click** Reflex Beta.app → **Open** (required first time only since the app is not notarized)
 4. Click **Open** when macOS asks for confirmation
@@ -100,7 +100,7 @@ Break durations are configurable (2, 5, or 10 minutes). Breathing exercises can 
 brew install xcodegen
 
 # Clone and build
-git clone https://github.com/YOUR_USERNAME/reflex.git
+git clone https://github.com/KamalReddy2901/reflex.git
 cd reflex
 xcodegen generate
 open Reflex.xcodeproj
@@ -111,7 +111,7 @@ Requires Xcode 16+ and macOS 15.0+ SDK.
 
 ## License
 
-MIT — do whatever you want with it.
+MIT — see [LICENSE](LICENSE).
 
 ---
 

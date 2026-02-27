@@ -53,7 +53,7 @@ class CoreMLPredictor: CognitiveLoadPredictor {
     private var model: MLModel?
 
     init() {
-        // TODO: Load trained .mlmodel when available
+        // Future path: load a trained .mlmodel when one is bundled.
         // model = try? CognitiveLoadClassifier(configuration: .init()).model
     }
 
