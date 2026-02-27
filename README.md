@@ -1,8 +1,8 @@
-# Reflex Beta — Cognitive Load Monitor
+# Reflex — Cognitive Load Monitor
 
 **Know when your brain needs a break. No wearable needed.**
 
-Reflex Beta is a native macOS menu bar app that passively monitors your typing patterns, mouse behavior, app switching, and scroll activity to infer your cognitive load in real-time. It nudges you to take breaks before burnout hits.
+Reflex is a native macOS menu bar app that passively monitors your typing patterns, mouse behavior, app switching, and scroll activity to infer your cognitive load in real-time. It nudges you to take breaks before burnout hits.
 
 ![macOS](https://img.shields.io/badge/macOS-15.0%2B-blue)
 ![Swift](https://img.shields.io/badge/Swift-5.9-orange)
@@ -16,14 +16,8 @@ Reflex Beta is a native macOS menu bar app that passively monitors your typing p
 - **Menu bar monitor** — always-visible score with quick status popover
 - **Glassmorphic dashboard** — session history, insights, and metric trends
 - **Smart break system** — DeskRest-style cursor follower, notification popup, and fullscreen overlay with breathing exercises
-- **Time-based break reminders** — triggers after continuous focus (default 25 min), regardless of cognitive load score
-- **Eye rest reminders (20-20-20 rule)** — full-screen overlay every 40 min prompting a 20-second eye break with cursor-following countdown, skippable
-- **Fatigue-aware scoring** — cognitive load score naturally increases with sustained work duration (30+ min), ensuring breaks are recommended even during steady "flow" sessions
-- **Natural break detection** — automatically credits idle periods (2+ min) as micro-breaks, resetting break timers
 - **Context switch tracking** — app switches, desktop/space switches, and window title changes
 - **Personal baseline calibration** — learns your normal patterns in 15 minutes
-- **Hydration reminders** — optional gentle system notification to drink water (configurable interval)
-- **Smart escalation** — tracks consecutive skipped breaks for more insistent reminders
 - **100% local** — no data leaves your Mac, ever
 
 ## What It Measures
@@ -36,25 +30,12 @@ Reflex Beta is a native macOS menu bar app that passively monitors your typing p
 | Mouse jitter | Physical tension — shaky movement = stress |
 | Scroll behavior | Scanning vs reading — rapid reversals = searching |
 | Context switches | Focus fragmentation — rapid switching = overload |
-| Continuous focus duration | Fatigue factor — longer sessions = higher baseline load |
-
-## Why This Is AI
-
-Reflex is not a static timer. It runs an on-device behavioral inference pipeline:
-
-1. **Sensing** — captures global, non-content interaction signals (keyboard timing, mouse movement, scroll patterns, app switching)
-2. **Feature extraction** — computes fatigue-relevant features every few seconds
-3. **Personalization** — calibrates to each user's baseline during the first ~15 minutes
-4. **Inference** — fuses weighted behavioral signals with a duration-based fatigue factor into a cognitive load score
-5. **Decisioning** — triggers context-aware interventions (load-based breaks, time-based breaks, eye rest, hydration)
-
-The current production model is a transparent weighted predictor with smoothing and baseline normalization. The architecture is Core ML-ready for future learned models.
 
 ## Installation
 
-1. Download the latest `.dmg` from [Releases](https://github.com/KamalReddy2901/reflex/releases/latest)
-2. Open the DMG and drag **Reflex Beta** to **Applications**
-3. **Right-click** Reflex Beta.app → **Open** (required first time only since the app is not notarized)
+1. Download **Reflex-1.0.dmg** from [Releases](../../releases/latest)
+2. Open the DMG and drag **Reflex** to **Applications**
+3. **Right-click** Reflex.app → **Open** (required first time only since the app is not notarized)
 4. Click **Open** when macOS asks for confirmation
 5. Grant **Accessibility** permission when prompted — this is required for monitoring keyboard and mouse patterns
 
@@ -62,7 +43,7 @@ The current production model is a transparent weighted predictor with smoothing 
 
 ## How It Works
 
-Reflex Beta uses a weighted heuristic engine to compute cognitive load:
+Reflex uses a weighted heuristic engine to compute cognitive load:
 
 ```
 Load Score = Typing Variance (25%)
@@ -71,29 +52,18 @@ Load Score = Typing Variance (25%)
            + Mouse Jitter (15%)
            + Pause Frequency (10%)
            + Scroll Chaos (10%)
-           + Fatigue Factor (up to +25 bonus after 30+ min)
 ```
 
 Scores are smoothed with an exponential moving average and calibrated against your personal baseline (established during the first 15 minutes of use).
 
 ### Break System
 
-Reflex Beta uses **three independent break triggers**:
+When you've been under high cognitive load for too long, Reflex:
 
-1. **Cognitive load-based** — when accumulated high-load time reaches 5+ minutes in a 30-minute window
-2. **Time-based** — after 25 minutes of continuous activity (configurable: 20–60 min), regardless of load score
-3. **Eye rest** — every 40 minutes of focus (configurable: 20–60 min), a quick 20-second eye break
-
-When a break is triggered, Reflex Beta:
-
-1. Shows a small **cursor-following countdown** ring (15–30s)
+1. Shows a small **cursor-following countdown** ring
 2. Pops up a **notification card** with Start/Snooze/Skip options
 3. If you start a break: displays a **fullscreen overlay** with a breathing exercise (4-4-4 cycle) and countdown timer
 4. If you skip: shows a gentle "We understand" message (click anywhere to dismiss)
-
-**Eye rest** follows the same flow but shows a 20-second "Give Rest to Your Eyes" overlay instead.
-
-Natural breaks (2+ minutes of no input) are automatically detected and credited, resetting all break timers.
 
 Break durations are configurable (2, 5, or 10 minutes). Breathing exercises can be toggled off.
 
@@ -105,29 +75,9 @@ Break durations are configurable (2, 5, or 10 minutes). Breathing exercises can 
 - **No analytics** — no telemetry of any kind
 - All data stored locally in `~/Library/Application Support/Reflex/`
 
-## Building from Source
-
-```bash
-# Install xcodegen if you don't have it
-brew install xcodegen
-
-# Clone and build
-git clone https://github.com/KamalReddy2901/reflex.git
-cd reflex
-xcodegen generate
-open Reflex.xcodeproj
-# Press ⌘R in Xcode to build and run
-```
-
-Requires Xcode 16+ and macOS 15.0+ SDK.
-
-## Submission Resources
-
-- AMD Slingshot pitch-deck outline (includes pilot KPI and AMD roadmap slides): [`docs/slingshot-pitch-deck.md`](docs/slingshot-pitch-deck.md)
-
 ## License
 
-MIT — do whatever you want with it.
+Reflex is closed-source. All rights reserved.
 
 ---
 
