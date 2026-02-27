@@ -38,21 +38,9 @@ Reflex Beta is a native macOS menu bar app that passively monitors your typing p
 | Context switches | Focus fragmentation — rapid switching = overload |
 | Continuous focus duration | Fatigue factor — longer sessions = higher baseline load |
 
-## Why This Is AI
-
-Reflex is not a static timer. It runs an on-device behavioral inference pipeline:
-
-1. **Sensing** — captures global, non-content interaction signals (keyboard timing, mouse movement, scroll patterns, app switching)
-2. **Feature extraction** — computes fatigue-relevant features every few seconds
-3. **Personalization** — calibrates to each user's baseline during the first ~15 minutes
-4. **Inference** — fuses weighted behavioral signals with a duration-based fatigue factor into a cognitive load score
-5. **Decisioning** — triggers context-aware interventions (load-based breaks, time-based breaks, eye rest, hydration)
-
-The current production model is a transparent weighted predictor with smoothing and baseline normalization. The architecture is Core ML-ready for future learned models.
-
 ## Installation
 
-1. Download the latest `.dmg` from [Releases](https://github.com/KamalReddy2901/reflex/releases/latest)
+1. Download **Reflex-Beta-3.1.dmg** from [Releases](../../releases/latest)
 2. Open the DMG and drag **Reflex Beta** to **Applications**
 3. **Right-click** Reflex Beta.app → **Open** (required first time only since the app is not notarized)
 4. Click **Open** when macOS asks for confirmation
@@ -112,7 +100,7 @@ Break durations are configurable (2, 5, or 10 minutes). Breathing exercises can 
 brew install xcodegen
 
 # Clone and build
-git clone https://github.com/KamalReddy2901/reflex.git
+git clone https://github.com/YOUR_USERNAME/reflex.git
 cd reflex
 xcodegen generate
 open Reflex.xcodeproj
@@ -120,10 +108,6 @@ open Reflex.xcodeproj
 ```
 
 Requires Xcode 16+ and macOS 15.0+ SDK.
-
-## Submission Resources
-
-- AMD Slingshot pitch-deck outline (includes pilot KPI and AMD roadmap slides): [`docs/slingshot-pitch-deck.md`](docs/slingshot-pitch-deck.md)
 
 ## License
 

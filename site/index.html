@@ -12,20 +12,20 @@
   <meta property="og:type" content="website" />
   <meta property="og:title" content="Reflex Beta — Cognitive Load Monitor for macOS" />
   <meta property="og:description" content="Know when your brain needs a break. Reflex Beta monitors your cognitive load in real time — no wearable needed." />
-  <meta property="og:image" content="https://reflexapp.pages.dev/assets/icon.png" />
-  <meta property="og:url" content="https://reflexapp.pages.dev" />
+  <meta property="og:image" content="https://reflex.pages.dev/assets/icon.png" />
+  <meta property="og:url" content="https://reflex.pages.dev" />
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Reflex Beta — Know When Your Brain Needs a Break" />
   <meta name="twitter:description" content="Native macOS app that monitors cognitive load in real time. Free. Open source. 100% private." />
-  <meta name="twitter:image" content="https://reflexapp.pages.dev/assets/icon.png" />
+  <meta name="twitter:image" content="https://reflex.pages.dev/assets/icon.png" />
 
   <!-- Favicon -->
   <link rel="icon" href="assets/favicon.ico" sizes="any" />
   <link rel="icon" href="assets/icon.png" type="image/png" />
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
-  <link rel="canonical" href="https://reflexapp.pages.dev/" />
+  <link rel="canonical" href="https://reflex.pages.dev/" />
 
   <!-- Preconnect for YouTube embed -->
   <link rel="preconnect" href="https://www.youtube.com" />
@@ -44,7 +44,6 @@
 
       <ul class="nav-links" id="nav-links">
         <li><a href="#features">Features</a></li>
-        <li><a href="#why-ai">Why AI</a></li>
         <li><a href="#demo">Demo</a></li>
         <li><a href="#how-it-works">How It Works</a></li>
         <li><a href="#privacy">Privacy</a></li>
@@ -308,59 +307,6 @@
           <p>Optional gentle system notification reminding you to drink water. Configurable interval (30–90 min). Small habit, big impact on focus and wellbeing. Off by default — enable in settings.</p>
         </div>
 
-      </div>
-    </div>
-  </section>
-
-  <!-- ═══════════════════════════════════════ WHY AI ══ -->
-  <section class="section why-ai-section" id="why-ai">
-    <div class="container">
-      <div class="section-tag reveal">Why AI</div>
-      <h2 class="section-title reveal reveal-delay-1">More than a timer: Reflex is a behavioral inference system.</h2>
-      <p class="section-sub reveal reveal-delay-2">Reflex continuously transforms interaction patterns into cognitive-state predictions and action. It is explainable, personalized, and fully on-device.</p>
-
-      <div class="features-grid">
-        <div class="feature-card reveal feature-card-wide">
-          <div class="feature-icon-wrap" style="--accent:#00DCC8">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 0 1 10 10"/><path d="M12 6a6 6 0 0 1 6 6"/><path d="M12 10a2 2 0 0 1 2 2"/><circle cx="12" cy="12" r="1"/></svg>
-          </div>
-          <div class="feature-body">
-            <h3>Signal to State Pipeline</h3>
-            <p>Every 5 seconds, Reflex converts non-content behavioral signals into a cognitive load estimate. Inputs include typing rhythm variance, correction rate, pause frequency, mouse jitter, scroll chaos, and context-switch rate.</p>
-          </div>
-        </div>
-
-        <div class="feature-card reveal reveal-delay-1">
-          <div class="feature-icon-wrap" style="--accent:#7347E5">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-          </div>
-          <h3>Personal Baseline Calibration</h3>
-          <p>Reflex learns your normal interaction profile during calibration, then scores relative to your baseline instead of a one-size-fits-all population average.</p>
-        </div>
-
-        <div class="feature-card reveal reveal-delay-2">
-          <div class="feature-icon-wrap" style="--accent:#E54D8C">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h3l3-8 4 16 3-8h5"/></svg>
-          </div>
-          <h3>Explainable Inference Engine</h3>
-          <p>A transparent weighted model combines multiple behavioral features plus a duration fatigue factor and EMA smoothing, producing an interpretable 0–100 load score.</p>
-        </div>
-
-        <div class="feature-card reveal reveal-delay-1">
-          <div class="feature-icon-wrap" style="--accent:#3F80F2">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9c2.49 0 4.75 1.01 6.36 2.64"/></svg>
-          </div>
-          <h3>Intervention Policy Layer</h3>
-          <p>AI output is operationalized through policy logic: load-based reminders, time-based safety net breaks, eye-rest prompts, and natural break detection for adaptive behavior support.</p>
-        </div>
-
-        <div class="feature-card reveal reveal-delay-2">
-          <div class="feature-icon-wrap" style="--accent:#26B3BF">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
-          </div>
-          <h3>Private Edge AI</h3>
-          <p>Inference runs locally on macOS with no cloud dependency, no keystroke content capture, and no telemetry, enabling trustworthy AI assistance for student and campus workflows.</p>
-        </div>
       </div>
     </div>
   </section>
@@ -674,7 +620,7 @@
 
           <div class="version-card reveal reveal-delay-1">
             <span class="version-label">Latest Release</span>
-            <span class="version-num" id="sidebar-version">v3.3-beta</span>
+            <span class="version-num" id="sidebar-version">v3.1-beta</span>
             <a href="https://github.com/KamalReddy2901/reflex/releases" target="_blank" rel="noopener" class="version-link">View all releases →</a>
           </div>
 
@@ -705,7 +651,7 @@
             <h2>Ready to work smarter?</h2>
             <p>Join the humans who've stopped guessing how tired their brain is.</p>
             <div class="download-meta">
-              <span id="dl-version" class="dl-version-badge">v3.3-beta</span>
+              <span id="dl-version" class="dl-version-badge">v3.1-beta</span>
               <span class="dl-meta-sep">·</span>
               <span>macOS 15 Sequoia+</span>
               <span class="dl-meta-sep">·</span>
@@ -746,7 +692,6 @@
           <div class="footer-col">
             <h5>Product</h5>
             <a href="#features">Features</a>
-            <a href="#why-ai">Why AI</a>
             <a href="#demo">Demo Video</a>
             <a href="#how-it-works">How It Works</a>
             <a href="#privacy">Privacy</a>
