@@ -20,6 +20,7 @@ struct SettingsView: View {
     @AppStorage("focusBreakIntervalMinutes") private var focusBreakIntervalMinutes = ReflexConstants.defaultFocusBreakIntervalMinutes
     @AppStorage("hydrationReminderEnabled") private var hydrationReminderEnabled = false
     @AppStorage("hydrationIntervalMinutes") private var hydrationIntervalMinutes = ReflexConstants.hydrationDefaultIntervalMinutes
+    @AppStorage("skipCooldownMinutes") private var skipCooldownMinutes = ReflexConstants.defaultSkipCooldownMinutes
 
     @State private var showClearConfirmation = false
     @State private var showResetBaseline = false
@@ -176,6 +177,36 @@ struct SettingsView: View {
                         }
 
                     Text("When off, breaks show a simple countdown timer without guided breathing.")
+                        .font(.caption2)
+                        .foregroundColor(.white.opacity(0.4))
+
+                    Divider()
+                        .background(Color.white.opacity(0.1))
+
+                    // Skip cooldown
+                    HStack {
+                        Text("After skipping, wait")
+                            .font(.caption)
+                            .foregroundColor(.white.opacity(0.6))
+
+                        Picker("", selection: $skipCooldownMinutes) {
+                            Text("20 min").tag(20)
+                            Text("30 min").tag(30)
+                            Text("45 min").tag(45)
+                            Text("60 min").tag(60)
+                        }
+                        .pickerStyle(.segmented)
+                        .frame(maxWidth: 280)
+                        .onChange(of: skipCooldownMinutes) { _, newValue in
+                            loadEngine.skipCooldownMinutes = newValue
+                        }
+
+                        Text("before re-alerting")
+                            .font(.caption)
+                            .foregroundColor(.white.opacity(0.6))
+                    }
+
+                    Text("After skipping a cognitive load break, Reflex will wait this long before reminding you again (prevents repeated interruptions).")
                         .font(.caption2)
                         .foregroundColor(.white.opacity(0.4))
 

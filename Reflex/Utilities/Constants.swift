@@ -34,6 +34,12 @@ enum ReflexConstants {
     static let defaultFocusBreakIntervalMinutes = 25
     static let naturalBreakThreshold: TimeInterval = 120 // 2 min no input = natural break
     static let activityCheckInterval: TimeInterval = 30
+    /// After sleep/lock, if the Mac was away for this long, end the current session.
+    static let inactivitySessionEndThreshold: TimeInterval = 300 // 5 minutes
+    /// Default skip cooldown — won't re-trigger cognitive load break for this long after a skip.
+    static let defaultSkipCooldownMinutes: Int = 20
+    /// Interval between "reminders paused" notifications when the user has paused all reminders.
+    static let pausedReminderInterval: TimeInterval = 10800 // 3 hours
 
     // MARK: - Fatigue Factor
     static let fatigueOnsetMinutes: Double = 30

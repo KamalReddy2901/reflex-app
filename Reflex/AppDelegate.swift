@@ -76,7 +76,20 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
                 return event
             }
 
+            let isPaused = UserDefaults.standard.bool(forKey: "allRemindersPaused")
+
             let menu = NSMenu()
+
+            let pauseTitle = isPaused ? "Resume Reminders" : "Pause All Reminders"
+            let pauseItem = NSMenuItem(
+                title: pauseTitle,
+                action: #selector(self.togglePauseFromMenu),
+                keyEquivalent: ""
+            )
+            pauseItem.target = self
+            menu.addItem(pauseItem)
+
+            menu.addItem(.separator())
             menu.addItem(NSMenuItem(title: "Quit Reflex Beta", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
 
             if let view = window.contentView {
@@ -84,6 +97,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
             }
             return nil // consume the event
         }
+    }
+
+    @objc private func togglePauseFromMenu() {
+        NotificationCenter.default.post(name: .togglePause, object: nil)
     }
 }
 
@@ -102,4 +119,6 @@ extension Notification.Name {
     static let startEyeRest = Notification.Name("com.reflex.startEyeRest")
     static let skipEyeRest = Notification.Name("com.reflex.skipEyeRest")
     static let dismissEyeRest = Notification.Name("com.reflex.dismissEyeRest")
+    static let togglePause = Notification.Name("com.reflex.togglePause")
+    static let sessionShouldEnd = Notification.Name("com.reflex.sessionShouldEnd")
 }

@@ -4,6 +4,10 @@ import UserNotifications
 @MainActor
 class BreakReminderService: ObservableObject {
     @Published var breaksTaken: Int = 0
+    /// Breaks taken due to high cognitive load (subset of breaksTaken).
+    @Published var cognitiveBreaksTaken: Int = 0
+    /// Eye-rest breaks completed this session.
+    @Published var eyeRestBreaksTaken: Int = 0
     @Published var lastBreakTime: Date?
     @Published var isOnBreak: Bool = false
     @Published var breakDuration: TimeInterval = 0
@@ -11,6 +15,9 @@ class BreakReminderService: ObservableObject {
     @Published var showBreakOverlay: Bool = false
     @Published var sessionStartTime: Date = .now
     @Published var totalFocusSeconds: TimeInterval = 0
+
+    // Universal pause
+    @Published var isAllPaused: Bool = false
 
     // Eye Rest
     @Published var eyeRestEnabled: Bool = true
@@ -48,6 +55,8 @@ class BreakReminderService: ObservableObject {
     private var breakDismissWorkItem: DispatchWorkItem?
     private var skipDismissWorkItem: DispatchWorkItem?
     private var eyeRestDismissWorkItem: DispatchWorkItem?
+    /// Fires every 3 hours while reminders are paused to remind the user.
+    private var pauseReminderTimer: Timer?
     private var reminderEnabled: Bool = true
     private var reminderInterval: TimeInterval = ReflexConstants.breakReminderDuration
     /// Accumulated high-load minutes required before a load-based break is triggered.
@@ -84,7 +93,7 @@ class BreakReminderService: ObservableObject {
     }
 
     func sendBreakReminder(loadScore: Int, minutesAtHighLoad: Int, force: Bool = false) {
-        guard force || (reminderEnabled && !isShowingAnyPrompt) else { return }
+        guard force || (reminderEnabled && !isAllPaused && !isShowingAnyPrompt) else { return }
 
         // Show cursor-following countdown
         cursorFollower.show(countdownSeconds: preBreakCountdown)
@@ -175,6 +184,7 @@ class BreakReminderService: ObservableObject {
     private func completeBreak() {
         isOnBreak = false
         breaksTaken += 1
+        cognitiveBreaksTaken += 1
         breakTimer?.invalidate()
         breakTimer = nil
 
@@ -219,6 +229,7 @@ class BreakReminderService: ObservableObject {
     func endBreakEarly() {
         isOnBreak = false
         breaksTaken += 1
+        cognitiveBreaksTaken += 1
         breakTimer?.invalidate()
         breakTimer = nil
         showBreakOverlay = false
@@ -361,6 +372,7 @@ class BreakReminderService: ObservableObject {
     private func completeEyeRest() {
         isEyeResting = false
         lastEyeRestTime = .now
+        eyeRestBreaksTaken += 1
         eyeRestTimer?.invalidate()
         eyeRestTimer = nil
 
@@ -395,7 +407,7 @@ class BreakReminderService: ObservableObject {
 
     /// Check if eye rest should be triggered based on elapsed focus time
     func checkEyeRest() {
-        guard eyeRestEnabled, !isShowingAnyPrompt else { return }
+        guard eyeRestEnabled, !isAllPaused, !isShowingAnyPrompt else { return }
 
         let minutesSinceLastEyeRest = Int(Date.now.timeIntervalSince(lastEyeRestTime) / 60)
         if minutesSinceLastEyeRest >= eyeRestIntervalMinutes {
@@ -407,7 +419,7 @@ class BreakReminderService: ObservableObject {
 
     /// Check if a time-based break should be triggered (independent of cognitive load)
     func checkTimedBreak(continuousActiveMinutes: Int, hasTriggeredTimedBreak: Bool, lastTriggerMinutes: Int) -> Bool {
-        guard reminderEnabled, !isShowingAnyPrompt else { return false }
+        guard reminderEnabled, !isAllPaused, !isShowingAnyPrompt else { return false }
 
         // Trigger when continuous active time has passed at least one full interval
         // since the last trigger (or since session start if no trigger yet).
@@ -430,7 +442,7 @@ class BreakReminderService: ObservableObject {
     // MARK: - Hydration Reminders
 
     func checkHydrationReminder() {
-        guard hydrationReminderEnabled else { return }
+        guard hydrationReminderEnabled, !isAllPaused else { return }
 
         let minutesSinceLastReminder = Int(Date.now.timeIntervalSince(lastHydrationReminder) / 60)
         if minutesSinceLastReminder >= hydrationIntervalMinutes {
@@ -464,6 +476,74 @@ class BreakReminderService: ObservableObject {
         lastBreakTime = .now
         lastEyeRestTime = .now // Reset eye rest timer too
         consecutiveSkips = 0
+    }
+
+    // MARK: - Universal Pause
+
+    /// Pause all break/eye-rest reminders and start the 3-hour nudge notifications.
+    func pauseAll() {
+        isAllPaused = true
+        dismissAllPrompts()
+
+        // Send a notification every 3 hours reminding the user that Reflex is paused
+        pauseReminderTimer?.invalidate()
+        pauseReminderTimer = Timer.scheduledTimer(
+            withTimeInterval: ReflexConstants.pausedReminderInterval,
+            repeats: true
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.sendPausedNudgeNotification()
+            }
+        }
+    }
+
+    /// Resume all reminders and cancel the paused nudge timer.
+    func resumeAll() {
+        isAllPaused = false
+        pauseReminderTimer?.invalidate()
+        pauseReminderTimer = nil
+        // Reset time-based baselines so reminders don't fire immediately on resume
+        lastEyeRestTime = .now
+        lastHydrationReminder = .now
+    }
+
+    /// Reset all time-based timers when the Mac wakes from sleep.
+    /// Call this after a short sleep (< 5 min) so counters start fresh.
+    func resetTimersForWake() {
+        lastEyeRestTime = .now
+        lastHydrationReminder = .now
+        lastBreakTime = .now
+        consecutiveSkips = 0
+    }
+
+    /// Reset session counters when starting a brand new session (post-sleep).
+    func resetForNewSession() {
+        breaksTaken = 0
+        cognitiveBreaksTaken = 0
+        eyeRestBreaksTaken = 0
+        naturalBreaksTaken = 0
+        consecutiveSkips = 0
+        totalFocusSeconds = 0
+        sessionStartTime = .now
+        lastBreakTime = nil
+        lastEyeRestTime = .now
+        lastHydrationReminder = .now
+    }
+
+    private func sendPausedNudgeNotification() {
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { _, _ in }
+
+        let content = UNMutableNotificationContent()
+        content.title = "⏸ Reflex Reminders Are Paused"
+        content.body = "All break and eye-rest reminders have been off for a while. Ready to get back to healthy focus?"
+        content.sound = .default
+
+        let request = UNNotificationRequest(
+            identifier: "reflex-paused-nudge-\(Date.now.timeIntervalSince1970)",
+            content: content,
+            trigger: nil
+        )
+        UNUserNotificationCenter.current().add(request)
     }
 
     func setReminderEnabled(_ enabled: Bool) {
@@ -506,5 +586,6 @@ class BreakReminderService: ObservableObject {
         focusTimer?.invalidate()
         eyeRestTimer?.invalidate()
         eyeRestPreTimer?.invalidate()
+        pauseReminderTimer?.invalidate()
     }
 }

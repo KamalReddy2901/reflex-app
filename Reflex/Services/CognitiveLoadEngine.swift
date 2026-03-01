@@ -2,6 +2,11 @@ import Foundation
 import AppKit
 import Combine
 
+/// Posted when the Mac has been asleep/locked for longer than `inactivitySessionEndThreshold`.
+/// Observers should end the current focus session and start a fresh one.
+// (Re-exported from AppDelegate extension — used here for clarity)
+// Notification.Name.sessionShouldEnd
+
 @MainActor
 class CognitiveLoadEngine: ObservableObject {
     @Published var currentScore: Int = 0
@@ -29,6 +34,12 @@ class CognitiveLoadEngine: ObservableObject {
     /// Used to re-trigger at multiples of the focus interval after skips.
     var lastTimedBreakTriggerMinutes: Int = 0
 
+    /// When the user last skipped a cognitive-load break. Used to enforce the
+    /// skip cooldown so the same kind of reminder doesn't fire immediately again.
+    var lastSkipTime: Date? = nil
+    /// How long to suppress cognitive-load break re-triggers after a skip.
+    var skipCooldownMinutes: Int = ReflexConstants.defaultSkipCooldownMinutes
+
     /// Sensitivity multiplier (0.0 = low sensitivity, 1.0 = high sensitivity).
     /// Applied to the raw score to make load detection more/less aggressive.
     var sensitivityMultiplier: Double = 0.5
@@ -45,6 +56,12 @@ class CognitiveLoadEngine: ObservableObject {
     private var lastBreakOrIdleTime: Date = .now
     private var highLoadTimestamps: [Date] = [] // sliding window for accumulated tracking
     private var wakeObserver: Any?
+    private var sleepObserver: Any?
+    private var screenSleepObserver: Any?
+    private var screenLockObserver: Any?
+    private var screenUnlockObserver: Any?
+    /// Timestamp when the Mac went to sleep / screen locked.
+    private var sleepStartTime: Date? = nil
 
     struct BehaviorBaseline: Codable {
         var typingIntervalMean: Double
@@ -70,23 +87,53 @@ class CognitiveLoadEngine: ObservableObject {
             }
         }
 
-        // Clean up any existing observer before (re-)registering so a double-
-        // call from the permission observer pathway doesn't leak one.
-        if let observer = wakeObserver {
-            NSWorkspace.shared.notificationCenter.removeObserver(observer)
-            wakeObserver = nil
+        // Clean up any existing observers before (re-)registering
+        removeAllSystemObservers()
+
+        // MARK: Sleep / Wake Observers
+
+        // Record sleep start time when Mac goes to sleep
+        sleepObserver = NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.willSleepNotification,
+            object: nil, queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in self?.handleSleepOrLock() }
         }
 
-        // Clear accumulated high-load state whenever the Mac wakes from sleep.
-        // Without this, pre-sleep high-load timestamps (up to 30 min old) would
-        // persist and could immediately fire a break reminder on wake.
+        // Record when screen turns off (e.g. Hot Corner lock, display sleep)
+        screenSleepObserver = NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.screensDidSleepNotification,
+            object: nil, queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in self?.handleSleepOrLock() }
+        }
+
+        // Screen lock (Cmd+Ctrl+Q)
+        screenLockObserver = DistributedNotificationCenter.default().addObserver(
+            forName: NSNotification.Name("com.apple.screenIsLocked"),
+            object: nil, queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in self?.handleSleepOrLock() }
+        }
+
+        // Wake from sleep — check duration and either end session or just reset load
         wakeObserver = NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.didWakeNotification,
             object: nil,
             queue: .main
         ) { [weak self] _ in
             Task { @MainActor in
-                self?.recordBreakTaken()
+                self?.handleWake()
+            }
+        }
+
+        // Screen unlock — same as wake for our purposes
+        screenUnlockObserver = DistributedNotificationCenter.default().addObserver(
+            forName: NSNotification.Name("com.apple.screenIsUnlocked"),
+            object: nil, queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.handleWake()
             }
         }
     }
@@ -94,9 +141,52 @@ class CognitiveLoadEngine: ObservableObject {
     func stopEngine() {
         updateTimer?.invalidate()
         updateTimer = nil
-        if let observer = wakeObserver {
-            NSWorkspace.shared.notificationCenter.removeObserver(observer)
-            wakeObserver = nil
+        removeAllSystemObservers()
+    }
+
+    private func removeAllSystemObservers() {
+        if let o = wakeObserver { NSWorkspace.shared.notificationCenter.removeObserver(o); wakeObserver = nil }
+        if let o = sleepObserver { NSWorkspace.shared.notificationCenter.removeObserver(o); sleepObserver = nil }
+        if let o = screenSleepObserver { NSWorkspace.shared.notificationCenter.removeObserver(o); screenSleepObserver = nil }
+        if let o = screenLockObserver { DistributedNotificationCenter.default().removeObserver(o); screenLockObserver = nil }
+        if let o = screenUnlockObserver { DistributedNotificationCenter.default().removeObserver(o); screenUnlockObserver = nil }
+    }
+
+    /// Called when Mac sleeps or screen locks.
+    private func handleSleepOrLock() {
+        // Only record the first sleep event (avoid overwriting if multiple fire simultaneously)
+        if sleepStartTime == nil {
+            sleepStartTime = .now
+        }
+    }
+
+    /// Called when Mac wakes or screen unlocks.
+    private func handleWake() {
+        defer { sleepStartTime = nil }
+
+        let awayDuration: TimeInterval
+        if let start = sleepStartTime {
+            awayDuration = Date.now.timeIntervalSince(start)
+        } else {
+            // No recorded sleep start — treat as short absence
+            awayDuration = 0
+        }
+
+        if awayDuration >= ReflexConstants.inactivitySessionEndThreshold {
+            // Away for 5+ minutes: end the current session and start a fresh one
+            // Pass the sleep start time so the session end can be backdated accurately
+            var info: [AnyHashable: Any] = [:]
+            if let sleepTime = sleepStartTime {
+                info["sleepStartTime"] = sleepTime
+            }
+            NotificationCenter.default.post(
+                name: .sessionShouldEnd,
+                object: nil,
+                userInfo: info
+            )
+        } else {
+            // Short absence: just reset load state (existing behaviour)
+            recordBreakTaken()
         }
     }
 
@@ -279,6 +369,8 @@ class CognitiveLoadEngine: ObservableObject {
     func recordBreakSkipped() {
         hasTriggeredTimedBreak = false
         hasTriggeredBreak = false
+        // Record skip time to enforce configurable cooldown before re-triggering
+        lastSkipTime = .now
         // Record current minutes so re-trigger waits for the next full interval
         lastTimedBreakTriggerMinutes = continuousActiveMinutes
     }
@@ -406,8 +498,10 @@ class CognitiveLoadEngine: ObservableObject {
 
     deinit {
         updateTimer?.invalidate()
-        if let observer = wakeObserver {
-            NSWorkspace.shared.notificationCenter.removeObserver(observer)
-        }
+        if let o = wakeObserver { NSWorkspace.shared.notificationCenter.removeObserver(o) }
+        if let o = sleepObserver { NSWorkspace.shared.notificationCenter.removeObserver(o) }
+        if let o = screenSleepObserver { NSWorkspace.shared.notificationCenter.removeObserver(o) }
+        if let o = screenLockObserver { DistributedNotificationCenter.default().removeObserver(o) }
+        if let o = screenUnlockObserver { DistributedNotificationCenter.default().removeObserver(o) }
     }
 }

@@ -28,6 +28,29 @@ struct MenuBarView: View {
     private var mainStatusView: some View {
         ScrollView(.vertical, showsIndicators: false) {
         VStack(spacing: 10) {
+
+            // Paused banner
+            if breakService.isAllPaused {
+                HStack(spacing: 8) {
+                    Image(systemName: "pause.circle.fill")
+                        .foregroundColor(.orange)
+                        .font(.system(size: 13))
+                    Text("All reminders paused")
+                        .font(.caption)
+                        .foregroundColor(.orange)
+                    Spacer()
+                    Button("Resume") {
+                        NotificationCenter.default.post(name: .togglePause, object: nil)
+                    }
+                    .font(.caption2)
+                    .foregroundColor(.orange)
+                    .buttonStyle(.plain)
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 7)
+                .background(Color.orange.opacity(0.12))
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+            }
             // Header
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
@@ -151,6 +174,17 @@ struct MenuBarView: View {
                 }
                 .glassButton()
                 .buttonStyle(.plain)
+
+                // Universal pause toggle
+                Button(action: {
+                    NotificationCenter.default.post(name: .togglePause, object: nil)
+                }) {
+                    Image(systemName: breakService.isAllPaused ? "play.circle.fill" : "pause.circle")
+                        .font(.caption)
+                        .foregroundColor(breakService.isAllPaused ? .orange : .white.opacity(0.5))
+                }
+                .buttonStyle(.plain)
+                .help(breakService.isAllPaused ? "Resume reminders" : "Pause all reminders")
 
                 Spacer()
 
@@ -312,8 +346,10 @@ struct MenuBarView: View {
         activateAndOpenDashboard()
     }
 
-    /// Robustly open dashboard even from fullscreen apps
+    /// Robustly open dashboard even from fullscreen apps, and auto-dismiss the menubar popup.
     private func activateAndOpenDashboard() {
+        // Dismiss the menubar popup — it's the key window at the moment of the tap
+        NSApp.keyWindow?.close()
         // Activate app first to ensure we switch spaces if needed
         NSApp.activate(ignoringOtherApps: true)
         // Open window after a brief delay so the space switch completes

@@ -32,11 +32,21 @@ class DataPersistenceService: ObservableObject {
         currentSession = session
     }
 
-    func endCurrentSession(loadHistory: [LoadSample], breaksTaken: Int, totalKeystrokes: Int, totalAppSwitches: Int) {
+    func endCurrentSession(
+        loadHistory: [LoadSample],
+        breaksTaken: Int,
+        cognitiveBreaksTaken: Int = 0,
+        eyeRestBreaksTaken: Int = 0,
+        totalKeystrokes: Int,
+        totalAppSwitches: Int,
+        overrideEndTime: Date? = nil
+    ) {
         guard var session = currentSession else { return }
-        session.endTime = .now
+        session.endTime = overrideEndTime ?? .now
         session.loadSamples = loadHistory
         session.breaksTaken = breaksTaken
+        session.cognitiveBreaksTaken = cognitiveBreaksTaken
+        session.eyeRestBreaksTaken = eyeRestBreaksTaken
         session.totalKeystrokes = totalKeystrokes
         session.totalAppSwitches = totalAppSwitches
 
@@ -57,10 +67,19 @@ class DataPersistenceService: ObservableObject {
         currentSession?.loadSamples.append(loadSample)
     }
 
-    func updateCurrentSessionSnapshot(loadHistory: [LoadSample], breaksTaken: Int, totalKeystrokes: Int, totalAppSwitches: Int) {
+    func updateCurrentSessionSnapshot(
+        loadHistory: [LoadSample],
+        breaksTaken: Int,
+        cognitiveBreaksTaken: Int = 0,
+        eyeRestBreaksTaken: Int = 0,
+        totalKeystrokes: Int,
+        totalAppSwitches: Int
+    ) {
         guard var session = currentSession else { return }
         session.loadSamples = loadHistory
         session.breaksTaken = breaksTaken
+        session.cognitiveBreaksTaken = cognitiveBreaksTaken
+        session.eyeRestBreaksTaken = eyeRestBreaksTaken
         session.totalKeystrokes = totalKeystrokes
         session.totalAppSwitches = totalAppSwitches
 
@@ -123,16 +142,25 @@ class DataPersistenceService: ObservableObject {
         
         let currentUrl = directory.appendingPathComponent("current_session.json")
         if let data = try? Data(contentsOf: currentUrl),
-           let loadedCurrent = try? JSONDecoder().decode(SessionData.self, from: data) {
-            // If there's an unfinished session from a previous run, we can either resume it or end it.
-            // Let's end it and add it to history to avoid data loss.
-            var recoveredSession = loadedCurrent
-            recoveredSession.endTime = .now
-            if !recoveredSession.loadSamples.isEmpty {
-                recoveredSession.averageLoad = Double(recoveredSession.loadSamples.map(\.score).reduce(0, +)) / Double(recoveredSession.loadSamples.count)
-                recoveredSession.peakLoad = recoveredSession.loadSamples.map(\.score).max() ?? 0
+           var loadedCurrent = try? JSONDecoder().decode(SessionData.self, from: data) {
+            // End the recovered session.
+            // Cap the end time using the last load sample timestamp to avoid
+            // multi-hour "ghost sessions" caused by sleep/lock without proper session end.
+            let maxReasonableDuration: TimeInterval = 8 * 3600 // 8 hours
+            let lastSampleTime = loadedCurrent.loadSamples.last?.timestamp
+            let naturalEnd = lastSampleTime ?? loadedCurrent.startTime
+            let elapsed = Date.now.timeIntervalSince(loadedCurrent.startTime)
+            if elapsed > maxReasonableDuration {
+                // Use the last known active timestamp to avoid inflated durations
+                loadedCurrent.endTime = naturalEnd
+            } else {
+                loadedCurrent.endTime = .now
             }
-            sessions.append(recoveredSession)
+            if !loadedCurrent.loadSamples.isEmpty {
+                loadedCurrent.averageLoad = Double(loadedCurrent.loadSamples.map(\.score).reduce(0, +)) / Double(loadedCurrent.loadSamples.count)
+                loadedCurrent.peakLoad = loadedCurrent.loadSamples.map(\.score).max() ?? 0
+            }
+            sessions.append(loadedCurrent)
             saveSessions()
             try? fileManager.removeItem(at: currentUrl)
         }
@@ -164,7 +192,7 @@ class DataPersistenceService: ObservableObject {
     }
 
     func exportToCSV() -> URL? {
-        var csv = "Session ID,Start Time,End Time,Duration (min),Avg Load,Peak Load,Breaks,Keystrokes,App Switches\n"
+        var csv = "Session ID,Start Time,End Time,Duration (min),Avg Load,Peak Load,Total Breaks,Load Breaks,Eye Rest Breaks,Keystrokes,App Switches\n"
 
         let formatter = ISO8601DateFormatter()
 
@@ -172,7 +200,7 @@ class DataPersistenceService: ObservableObject {
             let start = formatter.string(from: session.startTime)
             let end = session.endTime.map { formatter.string(from: $0) } ?? "ongoing"
             let duration = String(format: "%.1f", session.duration / 60)
-            csv += "\(session.id),\(start),\(end),\(duration),\(String(format: "%.1f", session.averageLoad)),\(session.peakLoad),\(session.breaksTaken),\(session.totalKeystrokes),\(session.totalAppSwitches)\n"
+            csv += "\(session.id),\(start),\(end),\(duration),\(String(format: "%.1f", session.averageLoad)),\(session.peakLoad),\(session.breaksTaken),\(session.cognitiveBreaksTaken),\(session.eyeRestBreaksTaken),\(session.totalKeystrokes),\(session.totalAppSwitches)\n"
         }
 
         let directory = getSessionsDirectory()

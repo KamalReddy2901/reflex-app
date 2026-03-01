@@ -26,6 +26,8 @@ struct ReflexApp: App {
     @AppStorage("breakRemindersEnabled") private var breakRemindersEnabled = true
     @AppStorage("breakIntervalMinutes") private var breakIntervalMinutes = 15
     @AppStorage("monitoringEnabled") private var monitoringEnabled = true
+    @AppStorage("allRemindersPaused") private var allRemindersPaused = false
+    @AppStorage("skipCooldownMinutes") private var skipCooldownMinutes = ReflexConstants.defaultSkipCooldownMinutes
 
     @State private var loadEngine: CognitiveLoadEngine?
     @State private var isInitialized = false
@@ -119,6 +121,7 @@ struct ReflexApp: App {
 
         // Sync sensitivity setting
         engine.sensitivityMultiplier = sensitivityLevel
+        engine.skipCooldownMinutes = skipCooldownMinutes
 
         // Wire event monitor to analyzers
         eventMonitor.onKeyDown = { [weak keystrokeAnalyzer, weak engine] time in
@@ -285,6 +288,14 @@ struct ReflexApp: App {
         breakService.setReminderEnabled(breakRemindersEnabled)
         breakService.setReminderInterval(TimeInterval(breakIntervalMinutes * 60))
         breakService.startSession()
+        // Restore pause state from UserDefaults
+        if allRemindersPaused {
+            breakService.pauseAll()
+        }
+        // Sync skip cooldown to engine
+        if let engine = loadEngine {
+            engine.skipCooldownMinutes = skipCooldownMinutes
+        }
 
         // Save session data on app termination
         NotificationCenter.default.addObserver(
@@ -295,13 +306,56 @@ struct ReflexApp: App {
                     self.persistenceService.endCurrentSession(
                         loadHistory: engine.sessionLoadHistory,
                         breaksTaken: self.breakService.breaksTaken,
+                        cognitiveBreaksTaken: self.breakService.cognitiveBreaksTaken,
+                        eyeRestBreaksTaken: self.breakService.eyeRestBreaksTaken,
                         totalKeystrokes: self.keystrokeAnalyzer.metrics.totalKeystrokes,
                         totalAppSwitches: self.appSwitchMonitor.totalSwitches
                     )
                 }
             }
         }
-    }
+
+        // End current session when Mac was away for 5+ minutes (sleep/lock)
+        NotificationCenter.default.addObserver(
+            forName: .sessionShouldEnd, object: nil, queue: .main
+        ) { notification in
+            Task { @MainActor in
+                guard let engine = self.loadEngine else { return }
+                // Backdate end time to when sleep started for accurate duration
+                let sleepStart = notification.userInfo?["sleepStartTime"] as? Date
+                self.persistenceService.endCurrentSession(
+                    loadHistory: engine.sessionLoadHistory,
+                    breaksTaken: self.breakService.breaksTaken,
+                    cognitiveBreaksTaken: self.breakService.cognitiveBreaksTaken,
+                    eyeRestBreaksTaken: self.breakService.eyeRestBreaksTaken,
+                    totalKeystrokes: self.keystrokeAnalyzer.metrics.totalKeystrokes,
+                    totalAppSwitches: self.appSwitchMonitor.totalSwitches,
+                    overrideEndTime: sleepStart
+                )
+                // Start a fresh session
+                self.persistenceService.startNewSession()
+                self.breakService.resetForNewSession()
+                engine.recordBreakTaken()
+            }
+        }
+
+        // Universal pause/resume toggle (from menubar button or right-click menu)
+        NotificationCenter.default.addObserver(
+            forName: .togglePause, object: nil, queue: .main
+        ) { _ in
+            Task { @MainActor in
+                if self.breakService.isAllPaused {
+                    self.breakService.resumeAll()
+                    self.allRemindersPaused = false
+                } else {
+                    self.breakService.pauseAll()
+                    self.allRemindersPaused = true
+                }
+                // Keep UserDefaults in sync for right-click menu
+                UserDefaults.standard.set(self.allRemindersPaused, forKey: "allRemindersPaused")
+            }
+        }
+    } // end setupBreakNotificationObservers
 
     private func setupBreakTriggerMonitor(engine: CognitiveLoadEngine) {
         // Track if natural break was already credited for current idle period
@@ -330,6 +384,8 @@ struct ReflexApp: App {
                 self.persistenceService.updateCurrentSessionSnapshot(
                     loadHistory: engine.sessionLoadHistory,
                     breaksTaken: self.breakService.breaksTaken,
+                    cognitiveBreaksTaken: self.breakService.cognitiveBreaksTaken,
+                    eyeRestBreaksTaken: self.breakService.eyeRestBreaksTaken,
                     totalKeystrokes: self.keystrokeAnalyzer.metrics.totalKeystrokes,
                     totalAppSwitches: self.appSwitchMonitor.totalSwitches
                 )
@@ -340,7 +396,17 @@ struct ReflexApp: App {
                 // 2. Cognitive load-based break (existing, improved)
                 // Trigger on N+ accumulated minutes of high load where N comes from
                 // the user's "Remind after N min of high load" setting.
-                if engine.accumulatedHighLoadMinutes >= breakService.accumulatedHighLoadThresholdMinutes && !engine.hasTriggeredBreak {
+                // Also enforce skip cooldown: don't re-trigger for skipCooldownMinutes after a skip.
+                let skipCooldownActive: Bool
+                if let skipTime = engine.lastSkipTime {
+                    skipCooldownActive = Date.now.timeIntervalSince(skipTime) < TimeInterval(engine.skipCooldownMinutes * 60)
+                } else {
+                    skipCooldownActive = false
+                }
+
+                if engine.accumulatedHighLoadMinutes >= breakService.accumulatedHighLoadThresholdMinutes
+                   && !engine.hasTriggeredBreak
+                   && !skipCooldownActive {
                     self.breakService.notificationPopup.mode = .breakReminder
                     self.breakService.sendBreakReminder(
 

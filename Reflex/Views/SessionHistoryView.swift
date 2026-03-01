@@ -145,8 +145,13 @@ struct SessionRowView: View {
                     .chartYScale(domain: 0...100)
                     .frame(height: 80)
 
-                    HStack {
-                        Label("\(session.breaksTaken) breaks", systemImage: "cup.and.saucer")
+                    HStack(spacing: 16) {
+                        if session.cognitiveBreaksTaken > 0 || session.eyeRestBreaksTaken > 0 {
+                            Label("\(session.cognitiveBreaksTaken) load break\(session.cognitiveBreaksTaken == 1 ? "" : "s")", systemImage: "cup.and.saucer")
+                            Label("\(session.eyeRestBreaksTaken) eye rest\(session.eyeRestBreaksTaken == 1 ? "" : "s")", systemImage: "eye")
+                        } else {
+                            Label("\(session.breaksTaken) break\(session.breaksTaken == 1 ? "" : "s")", systemImage: "cup.and.saucer")
+                        }
                         Spacer()
                         Label("\(session.totalKeystrokes) keystrokes", systemImage: "keyboard")
                     }
