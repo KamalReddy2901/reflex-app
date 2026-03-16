@@ -370,6 +370,76 @@ function initHeroStageParallax() {
   });
 }
 
+/* ── Screenshot lightbox preview ────────────────────────── */
+function initScreenshotLightbox() {
+  const lightbox = document.getElementById('shot-lightbox');
+  const lightboxImage = document.getElementById('lightbox-image');
+  const lightboxCaption = document.getElementById('lightbox-caption');
+  const closeBtn = document.getElementById('lightbox-close');
+  const cards = document.querySelectorAll('.shot-card, .shot-panel');
+
+  if (!lightbox || !lightboxImage || !lightboxCaption || !closeBtn || !cards.length) return;
+
+  let lastFocusedEl = null;
+
+  const openLightbox = (img, caption) => {
+    if (!img || !img.src) return;
+    lastFocusedEl = document.activeElement;
+    lightboxImage.src = img.src;
+    lightboxImage.alt = img.alt || 'Screenshot preview';
+    lightboxCaption.textContent = caption || img.alt || '';
+    lightbox.classList.add('open');
+    lightbox.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    closeBtn.focus();
+  };
+
+  const closeLightbox = () => {
+    lightbox.classList.remove('open');
+    lightbox.setAttribute('aria-hidden', 'true');
+    lightboxImage.src = '';
+    document.body.style.overflow = '';
+    if (lastFocusedEl && typeof lastFocusedEl.focus === 'function') {
+      lastFocusedEl.focus();
+    }
+  };
+
+  cards.forEach((card) => {
+    if (card.classList.contains('is-missing')) return;
+
+    const img = card.querySelector('img');
+    if (!img) return;
+
+    const captionText = card.querySelector('figcaption')?.textContent?.trim() || img.alt;
+
+    card.setAttribute('tabindex', '0');
+    card.setAttribute('role', 'button');
+    card.setAttribute('aria-label', `Open preview: ${captionText}`);
+
+    card.addEventListener('click', () => openLightbox(img, captionText));
+    card.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openLightbox(img, captionText);
+      }
+    });
+  });
+
+  closeBtn.addEventListener('click', closeLightbox);
+
+  lightbox.addEventListener('click', (event) => {
+    if (event.target.matches('[data-close-lightbox="true"]')) {
+      closeLightbox();
+    }
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && lightbox.classList.contains('open')) {
+      closeLightbox();
+    }
+  });
+}
+
 /* ── Prefers-reduced-motion respect ─────────────────────── */
 function respectReducedMotion() {
   const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -392,63 +462,9 @@ document.addEventListener('DOMContentLoaded', () => {
   initReveal();
   initScreenshotFallbacks();
   initHeroStageParallax();
+  initScreenshotLightbox();
   initHeroScore();
   initDownloadFeedback();
   initActiveNav();
   fetchLatestRelease();
-  initScreenshotModal();
-function initScreenshotModal() {
-  const modal = document.getElementById('screenshot-modal');
-  const modalImg = document.getElementById('modal-image');
-  const modalCaption = document.getElementById('modal-caption');
-  const closeBtn = modal.querySelector('.modal-close');
-  const backdrop = modal.querySelector('.modal-backdrop');
-  let lastFocused = null;
-
-  function openModal(src, caption) {
-    modalImg.src = src;
-    modalCaption.textContent = caption || '';
-    modal.setAttribute('aria-hidden', 'false');
-    modalImg.focus();
-    lastFocused = document.activeElement;
-    document.body.style.overflow = 'hidden';
-  }
-
-  function closeModal() {
-    modal.setAttribute('aria-hidden', 'true');
-    modalImg.src = '';
-    modalCaption.textContent = '';
-    document.body.style.overflow = '';
-    if (lastFocused) lastFocused.focus();
-  }
-
-  // Click screenshot cards
-  document.querySelectorAll('.screenshot-card').forEach(card => {
-    card.addEventListener('click', () => {
-      const src = card.getAttribute('data-src');
-      let caption = '';
-      const figcaption = card.querySelector('figcaption');
-      if (figcaption) caption = figcaption.innerText;
-      openModal(src, caption);
-    });
-    card.addEventListener('keydown', e => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        const src = card.getAttribute('data-src');
-        let caption = '';
-        const figcaption = card.querySelector('figcaption');
-        if (figcaption) caption = figcaption.innerText;
-        openModal(src, caption);
-      }
-    });
-  });
-
-  // Close modal
-  closeBtn.addEventListener('click', closeModal);
-  backdrop.addEventListener('click', closeModal);
-  modal.addEventListener('keydown', e => {
-    if (e.key === 'Escape') closeModal();
-  });
-  modalImg.addEventListener('click', closeModal);
-}
 });
