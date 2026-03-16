@@ -396,4 +396,59 @@ document.addEventListener('DOMContentLoaded', () => {
   initDownloadFeedback();
   initActiveNav();
   fetchLatestRelease();
+  initScreenshotModal();
+function initScreenshotModal() {
+  const modal = document.getElementById('screenshot-modal');
+  const modalImg = document.getElementById('modal-image');
+  const modalCaption = document.getElementById('modal-caption');
+  const closeBtn = modal.querySelector('.modal-close');
+  const backdrop = modal.querySelector('.modal-backdrop');
+  let lastFocused = null;
+
+  function openModal(src, caption) {
+    modalImg.src = src;
+    modalCaption.textContent = caption || '';
+    modal.setAttribute('aria-hidden', 'false');
+    modalImg.focus();
+    lastFocused = document.activeElement;
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    modal.setAttribute('aria-hidden', 'true');
+    modalImg.src = '';
+    modalCaption.textContent = '';
+    document.body.style.overflow = '';
+    if (lastFocused) lastFocused.focus();
+  }
+
+  // Click screenshot cards
+  document.querySelectorAll('.screenshot-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const src = card.getAttribute('data-src');
+      let caption = '';
+      const figcaption = card.querySelector('figcaption');
+      if (figcaption) caption = figcaption.innerText;
+      openModal(src, caption);
+    });
+    card.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        const src = card.getAttribute('data-src');
+        let caption = '';
+        const figcaption = card.querySelector('figcaption');
+        if (figcaption) caption = figcaption.innerText;
+        openModal(src, caption);
+      }
+    });
+  });
+
+  // Close modal
+  closeBtn.addEventListener('click', closeModal);
+  backdrop.addEventListener('click', closeModal);
+  modal.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeModal();
+  });
+  modalImg.addEventListener('click', closeModal);
+}
 });

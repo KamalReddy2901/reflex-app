@@ -163,6 +163,15 @@
       </div>
       <p class="hero-visual-note reveal reveal-delay-4">Real in-app screenshots. Zero mockups.</p>
     </div>
+    <!-- Modal/Lightbox for screenshots -->
+    <div id="screenshot-modal" class="modal" aria-hidden="true" tabindex="-1">
+      <div class="modal-backdrop"></div>
+      <div class="modal-content" role="dialog" aria-modal="true">
+        <button class="modal-close" aria-label="Close screenshot view">&times;</button>
+        <img id="modal-image" src="" alt="Screenshot fullscreen" />
+        <div id="modal-caption"></div>
+      </div>
+    </div>
   </section>
 
   <!-- ═══════════════════════════════════════ SOCIAL PROOF STRIP ══ -->
@@ -200,7 +209,7 @@
       <p class="section-sub reveal reveal-delay-2">From menu bar pulse checks to deep weekly insight trends, Reflex gives you signal-rich feedback without stealing your flow.</p>
 
       <div class="product-shots-grid">
-        <figure class="shot-panel reveal">
+        <figure class="shot-panel reveal screenshot-card" tabindex="0" data-src="assets/screenshots/menubar-elevated.png" aria-label="Menu Bar Pulse">
           <div class="shot-image-wrap">
             <img src="assets/screenshots/menubar-elevated.png" alt="Menu bar monitoring view with elevated cognitive load" loading="lazy" />
           </div>
@@ -209,8 +218,7 @@
             <span>One click for score, trend direction, and quick break actions.</span>
           </figcaption>
         </figure>
-
-        <figure class="shot-panel reveal reveal-delay-1">
+        <figure class="shot-panel reveal reveal-delay-1 screenshot-card" tabindex="0" data-src="assets/screenshots/dashboard-overview.png" aria-label="Overview Dashboard">
           <div class="shot-image-wrap">
             <img src="assets/screenshots/dashboard-overview.png" alt="Dashboard overview showing session ring and key cognitive metrics" loading="lazy" />
           </div>
@@ -219,8 +227,7 @@
             <span>Instantly understand your current load and behavior signals.</span>
           </figcaption>
         </figure>
-
-        <figure class="shot-panel reveal reveal-delay-2">
+        <figure class="shot-panel reveal reveal-delay-2 screenshot-card" tabindex="0" data-src="assets/screenshots/insights-view.png" aria-label="Insight Engine">
           <div class="shot-image-wrap">
             <img src="assets/screenshots/insights-view.png" alt="Insights screen containing weekly load bars and focus by hour heatmap" loading="lazy" />
           </div>
@@ -229,8 +236,7 @@
             <span>Weekly trends and hour-by-hour focus maps with personalized tips.</span>
           </figcaption>
         </figure>
-
-        <figure class="shot-panel reveal reveal-delay-3">
+        <figure class="shot-panel reveal reveal-delay-3 screenshot-card" tabindex="0" data-src="assets/screenshots/history-view.png" aria-label="Session History">
           <div class="shot-image-wrap">
             <img src="assets/screenshots/history-view.png" alt="Session history list with average peak and duration metrics" loading="lazy" />
           </div>
