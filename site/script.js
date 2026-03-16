@@ -375,12 +375,13 @@ function initScreenshotLightbox() {
   const lightbox = document.getElementById('shot-lightbox');
   const lightboxImage = document.getElementById('lightbox-image');
   const lightboxCaption = document.getElementById('lightbox-caption');
+  const lightboxCount = document.getElementById('lightbox-count');
   const closeBtn = document.getElementById('lightbox-close');
   const prevBtn = document.getElementById('lightbox-prev');
   const nextBtn = document.getElementById('lightbox-next');
   const cards = document.querySelectorAll('.shot-card, .shot-panel');
 
-  if (!lightbox || !lightboxImage || !lightboxCaption || !closeBtn || !prevBtn || !nextBtn || !cards.length) return;
+  if (!lightbox || !lightboxImage || !lightboxCaption || !lightboxCount || !closeBtn || !prevBtn || !nextBtn || !cards.length) return;
 
   let lastFocusedEl = null;
   let activeIndex = -1;
@@ -392,6 +393,7 @@ function initScreenshotLightbox() {
     lightboxImage.src = item.img.src;
     lightboxImage.alt = item.img.alt || 'Screenshot preview';
     lightboxCaption.textContent = item.caption || item.img.alt || '';
+    lightboxCount.textContent = `${activeIndex + 1} / ${items.length}`;
   };
 
   const showAt = (index) => {
