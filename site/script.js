@@ -311,13 +311,72 @@ function initHeroBadge() {
   // CSS handles the animation; just ensure :focus styles are good
 }
 
+/* ── Screenshot asset fallback handling ─────────────────── */
+function initScreenshotFallbacks() {
+  const images = document.querySelectorAll('.shot-card img, .shot-panel img');
+  if (!images.length) return;
+
+  images.forEach((img) => {
+    const frame = img.closest('.shot-card, .shot-panel');
+    if (!frame) return;
+
+    const markMissing = () => frame.classList.add('is-missing');
+
+    img.addEventListener('error', markMissing);
+
+    if (img.complete && img.naturalWidth === 0) {
+      markMissing();
+    }
+  });
+}
+
+/* ── Hero screenshot stage parallax ─────────────────────── */
+function initHeroStageParallax() {
+  const stage = document.getElementById('hero-stage');
+  if (!stage) return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  const cards = Array.from(stage.querySelectorAll('.shot-card'));
+  if (!cards.length) return;
+
+  let rafId = null;
+  let targetX = 0;
+  let targetY = 0;
+
+  const step = () => {
+    cards.forEach((card, idx) => {
+      const depth = (idx + 1) * 0.45;
+      const tx = targetX * depth;
+      const ty = targetY * depth;
+      card.style.setProperty('--px', `${tx}px`);
+      card.style.setProperty('--py', `${ty}px`);
+    });
+    rafId = null;
+  };
+
+  stage.addEventListener('pointermove', (event) => {
+    const rect = stage.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    targetX = ((event.clientX - cx) / rect.width) * 12;
+    targetY = ((event.clientY - cy) / rect.height) * 12;
+    if (!rafId) rafId = requestAnimationFrame(step);
+  });
+
+  stage.addEventListener('pointerleave', () => {
+    targetX = 0;
+    targetY = 0;
+    if (!rafId) rafId = requestAnimationFrame(step);
+  });
+}
+
 /* ── Prefers-reduced-motion respect ─────────────────────── */
 function respectReducedMotion() {
   const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
   if (mq.matches) {
     document.documentElement.style.setProperty('--transition-duration', '0.01ms');
     // Remove orb animations
-    document.querySelectorAll('.hero-orb, .icon-glow').forEach(el => {
+    document.querySelectorAll('.hero-orb, .shot-card').forEach(el => {
       el.style.animation = 'none';
     });
   }
@@ -331,6 +390,8 @@ document.addEventListener('DOMContentLoaded', () => {
   initMobileMenu();
   initSmoothScroll();
   initReveal();
+  initScreenshotFallbacks();
+  initHeroStageParallax();
   initHeroScore();
   initDownloadFeedback();
   initActiveNav();

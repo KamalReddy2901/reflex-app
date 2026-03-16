@@ -112,28 +112,56 @@
       </div>
     </div>
     <div class="hero-visual reveal reveal-delay-3">
-      <div class="hero-app-icon">
-        <img src="assets/icon.png" alt="Reflex Beta app icon" />
-        <div class="icon-glow"></div>
-      </div>
-      <!-- Score ring decorative element -->
-      <div class="hero-ring-wrap">
-        <svg class="hero-ring" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="100" cy="100" r="85" stroke="rgba(255,255,255,0.06)" stroke-width="14"/>
-          <circle cx="100" cy="100" r="85" stroke="url(#ringGrad)" stroke-width="14" stroke-linecap="round"
-            stroke-dasharray="534" stroke-dashoffset="160" transform="rotate(-90 100 100)"/>
-          <defs>
-            <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stop-color="#00DCC8"/>
-              <stop offset="100%" stop-color="#7347E5"/>
-            </linearGradient>
-          </defs>
-        </svg>
-        <div class="ring-score">
-          <span class="ring-number" id="animated-score">72</span>
-          <span class="ring-label">Elevated</span>
+      <div class="hero-stage" id="hero-stage" aria-label="Reflex Beta app screenshots">
+        <figure class="shot-card shot-primary reveal">
+          <div class="shot-image-wrap">
+            <img src="assets/screenshots/dashboard-overview.png" alt="Reflex Beta dashboard overview with live load ring and metrics" loading="eager" />
+          </div>
+          <figcaption>Live dashboard at a glance</figcaption>
+        </figure>
+
+        <figure class="shot-card shot-left reveal reveal-delay-1">
+          <div class="shot-image-wrap">
+            <img src="assets/screenshots/menubar-overloaded.png" alt="Menu bar popover view showing overloaded cognitive load" loading="lazy" />
+          </div>
+          <figcaption>Menu bar popover</figcaption>
+        </figure>
+
+        <figure class="shot-card shot-right reveal reveal-delay-2">
+          <div class="shot-image-wrap">
+            <img src="assets/screenshots/insights-view.png" alt="Insights view with weekly trend chart and focus heatmap" loading="lazy" />
+          </div>
+          <figcaption>Trends and insights</figcaption>
+        </figure>
+
+        <figure class="shot-card shot-bottom reveal reveal-delay-3">
+          <div class="shot-image-wrap">
+            <img src="assets/screenshots/settings-view.png" alt="Settings screen for break reminders eye rest and wellness controls" loading="lazy" />
+          </div>
+          <figcaption>Settings that adapt to you</figcaption>
+        </figure>
+
+        <div class="hero-load-chip reveal reveal-delay-4" aria-label="Live load score">
+          <div class="hero-ring-wrap">
+            <svg class="hero-ring" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="100" cy="100" r="85" stroke="rgba(255,255,255,0.08)" stroke-width="14"/>
+              <circle cx="100" cy="100" r="85" stroke="url(#ringGrad)" stroke-width="14" stroke-linecap="round"
+                stroke-dasharray="534" stroke-dashoffset="160" transform="rotate(-90 100 100)"/>
+              <defs>
+                <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#00DCC8"/>
+                  <stop offset="100%" stop-color="#7347E5"/>
+                </linearGradient>
+              </defs>
+            </svg>
+            <div class="ring-score">
+              <span class="ring-number" id="animated-score">72</span>
+              <span class="ring-label">Elevated</span>
+            </div>
+          </div>
         </div>
       </div>
+      <p class="hero-visual-note reveal reveal-delay-4">Real in-app screenshots. Zero mockups.</p>
     </div>
   </section>
 
@@ -163,6 +191,57 @@
       </div>
     </div>
   </div>
+
+  <!-- ═══════════════════════════════════════ PRODUCT SHOTS ══ -->
+  <section class="section product-shots-section" id="product">
+    <div class="container">
+      <div class="section-tag reveal">Inside Reflex</div>
+      <h2 class="section-title reveal reveal-delay-1">See the real app before you install</h2>
+      <p class="section-sub reveal reveal-delay-2">From menu bar pulse checks to deep weekly insight trends, Reflex gives you signal-rich feedback without stealing your flow.</p>
+
+      <div class="product-shots-grid">
+        <figure class="shot-panel reveal">
+          <div class="shot-image-wrap">
+            <img src="assets/screenshots/menubar-elevated.png" alt="Menu bar monitoring view with elevated cognitive load" loading="lazy" />
+          </div>
+          <figcaption>
+            <strong>Menu Bar Pulse</strong>
+            <span>One click for score, trend direction, and quick break actions.</span>
+          </figcaption>
+        </figure>
+
+        <figure class="shot-panel reveal reveal-delay-1">
+          <div class="shot-image-wrap">
+            <img src="assets/screenshots/dashboard-overview.png" alt="Dashboard overview showing session ring and key cognitive metrics" loading="lazy" />
+          </div>
+          <figcaption>
+            <strong>Overview Dashboard</strong>
+            <span>Instantly understand your current load and behavior signals.</span>
+          </figcaption>
+        </figure>
+
+        <figure class="shot-panel reveal reveal-delay-2">
+          <div class="shot-image-wrap">
+            <img src="assets/screenshots/insights-view.png" alt="Insights screen containing weekly load bars and focus by hour heatmap" loading="lazy" />
+          </div>
+          <figcaption>
+            <strong>Insight Engine</strong>
+            <span>Weekly trends and hour-by-hour focus maps with personalized tips.</span>
+          </figcaption>
+        </figure>
+
+        <figure class="shot-panel reveal reveal-delay-3">
+          <div class="shot-image-wrap">
+            <img src="assets/screenshots/history-view.png" alt="Session history list with average peak and duration metrics" loading="lazy" />
+          </div>
+          <figcaption>
+            <strong>Session History</strong>
+            <span>Track sessions, peaks, and durations to spot burnout patterns early.</span>
+          </figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
 
   <!-- ═══════════════════════════════════════ FEATURES ══ -->
   <section class="section features-section" id="features">
