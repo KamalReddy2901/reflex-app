@@ -377,11 +377,19 @@ code {
 .shot-card .shot-image-wrap {
   position: relative;
   background: linear-gradient(135deg, rgba(17,12,34,0.96), rgba(13,24,52,0.95));
+  height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
 }
 .shot-card img {
-  width: 100%;
-  aspect-ratio: 16 / 10;
-  object-fit: cover;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  display: block;
 }
 .shot-card figcaption {
   position: absolute;
@@ -498,7 +506,6 @@ code {
 .shot-card.is-missing .shot-image-wrap,
 .shot-panel.is-missing .shot-image-wrap {
   min-height: 220px;
-  display: flex;
   align-items: center;
   justify-content: center;
   background:
@@ -600,12 +607,20 @@ code {
 .shot-panel .shot-image-wrap {
   border-bottom: 1px solid rgba(255,255,255,0.08);
   background: linear-gradient(135deg, rgba(17,12,34,0.96), rgba(13,24,52,0.95));
+  height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
 }
 
 .shot-panel img {
-  width: 100%;
-  aspect-ratio: 16 / 10;
-  object-fit: cover;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  display: block;
 }
 
 .shot-panel figcaption {
