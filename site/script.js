@@ -376,18 +376,35 @@ function initScreenshotLightbox() {
   const lightboxImage = document.getElementById('lightbox-image');
   const lightboxCaption = document.getElementById('lightbox-caption');
   const closeBtn = document.getElementById('lightbox-close');
+  const prevBtn = document.getElementById('lightbox-prev');
+  const nextBtn = document.getElementById('lightbox-next');
   const cards = document.querySelectorAll('.shot-card, .shot-panel');
 
-  if (!lightbox || !lightboxImage || !lightboxCaption || !closeBtn || !cards.length) return;
+  if (!lightbox || !lightboxImage || !lightboxCaption || !closeBtn || !prevBtn || !nextBtn || !cards.length) return;
 
   let lastFocusedEl = null;
+  let activeIndex = -1;
+  const items = [];
 
-  const openLightbox = (img, caption) => {
-    if (!img || !img.src) return;
+  const updateLightbox = () => {
+    const item = items[activeIndex];
+    if (!item) return;
+    lightboxImage.src = item.img.src;
+    lightboxImage.alt = item.img.alt || 'Screenshot preview';
+    lightboxCaption.textContent = item.caption || item.img.alt || '';
+  };
+
+  const showAt = (index) => {
+    if (!items.length) return;
+    const total = items.length;
+    activeIndex = ((index % total) + total) % total;
+    updateLightbox();
+  };
+
+  const openLightbox = (index) => {
+    if (!items.length) return;
     lastFocusedEl = document.activeElement;
-    lightboxImage.src = img.src;
-    lightboxImage.alt = img.alt || 'Screenshot preview';
-    lightboxCaption.textContent = caption || img.alt || '';
+    showAt(index);
     lightbox.classList.add('open');
     lightbox.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
@@ -404,27 +421,42 @@ function initScreenshotLightbox() {
     }
   };
 
-  cards.forEach((card) => {
-    if (card.classList.contains('is-missing')) return;
+  const goPrev = () => showAt(activeIndex - 1);
+  const goNext = () => showAt(activeIndex + 1);
 
+  cards.forEach((card) => {
     const img = card.querySelector('img');
     if (!img) return;
 
     const captionText = card.querySelector('figcaption')?.textContent?.trim() || img.alt;
+    const index = items.length;
+    items.push({ card, img, caption: captionText });
 
     card.setAttribute('tabindex', '0');
     card.setAttribute('role', 'button');
     card.setAttribute('aria-label', `Open preview: ${captionText}`);
 
-    card.addEventListener('click', () => openLightbox(img, captionText));
+    card.addEventListener('click', () => {
+      if (!img.src || card.classList.contains('is-missing') || (img.complete && img.naturalWidth === 0)) return;
+      openLightbox(index);
+    });
+
     card.addEventListener('keydown', (event) => {
       if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
-        openLightbox(img, captionText);
+        if (!img.src || card.classList.contains('is-missing') || (img.complete && img.naturalWidth === 0)) return;
+        openLightbox(index);
       }
     });
   });
 
+  if (items.length <= 1) {
+    prevBtn.disabled = true;
+    nextBtn.disabled = true;
+  }
+
+  prevBtn.addEventListener('click', goPrev);
+  nextBtn.addEventListener('click', goNext);
   closeBtn.addEventListener('click', closeLightbox);
 
   lightbox.addEventListener('click', (event) => {
@@ -434,8 +466,20 @@ function initScreenshotLightbox() {
   });
 
   document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && lightbox.classList.contains('open')) {
+    if (!lightbox.classList.contains('open')) return;
+
+    if (event.key === 'Escape') {
       closeLightbox();
+      return;
+    }
+
+    if (event.key === 'ArrowLeft') {
+      goPrev();
+      return;
+    }
+
+    if (event.key === 'ArrowRight') {
+      goNext();
     }
   });
 }
