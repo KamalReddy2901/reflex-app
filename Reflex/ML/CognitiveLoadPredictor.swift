@@ -8,8 +8,10 @@ protocol CognitiveLoadPredictor {
     func predictScore(from snapshot: BehaviorSnapshot) -> Int
 }
 
-// MARK: - Heuristic Predictor (Default)
-
+// MARK: - Heuristic Predictor
+// TODO: CognitiveLoadEngine.computeHeuristicScore duplicates this logic.
+//       When CoreML is wired up, unify both behind this predictor.
+// NOTE: Not instantiated at runtime — reserved for future ML pipeline.
 class HeuristicPredictor: CognitiveLoadPredictor {
     func predict(from snapshot: BehaviorSnapshot) -> CognitiveLoadLevel {
         CognitiveLoadLevel.from(score: predictScore(from: snapshot))
@@ -47,8 +49,8 @@ class HeuristicPredictor: CognitiveLoadPredictor {
     }
 }
 
-// MARK: - Core ML Predictor (Future)
-
+// MARK: - Core ML Predictor
+// NOTE: Stubbed — replaces HeuristicPredictor once a trained .mlmodel is bundled.
 class CoreMLPredictor: CognitiveLoadPredictor {
     private var model: MLModel?
 
@@ -77,7 +79,8 @@ class CoreMLPredictor: CognitiveLoadPredictor {
 }
 
 // MARK: - Training Data Collector
-
+// NOTE: Not instantiated at runtime. Enable to collect labeled samples for
+//       training a CoreML model.
 class TrainingDataCollector {
     private var samples: [(BehaviorSnapshot, Int)] = []
 

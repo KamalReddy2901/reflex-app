@@ -5,7 +5,8 @@ import AppKit
 
 @MainActor
 class EyeRestOverlayWindowController: ObservableObject {
-    private var panel: NSPanel?
+    /// One panel per connected screen so the overlay covers all displays.
+    private var panels: [NSPanel] = []
     private var spaceChangeObserver: Any?
     @Published var state: EyeRestState = .active(remaining: 20, total: 20)
 
@@ -16,7 +17,7 @@ class EyeRestOverlayWindowController: ObservableObject {
 
     func show(duration: TimeInterval = 20) {
         state = .active(remaining: duration, total: duration)
-        if panel == nil { presentWindow() }
+        if panels.isEmpty { presentWindow() }
     }
 
     func updateCountdown(remaining: TimeInterval) {
@@ -30,42 +31,45 @@ class EyeRestOverlayWindowController: ObservableObject {
     }
 
     private func presentWindow() {
-        if panel != nil { dismiss() }
+        if !panels.isEmpty { dismiss() }
 
-        guard let screen = NSScreen.main else { return }
-        let screenFrame = screen.frame
+        // Create one panel per screen to cover all displays on multi-monitor setups.
+        for screen in NSScreen.screens {
+            let screenFrame = screen.frame
 
-        let p = NSPanel(
-            contentRect: screenFrame,
-            styleMask: [.borderless, .fullSizeContentView, .nonactivatingPanel],
-            backing: .buffered,
-            defer: false
-        )
+            let p = NSPanel(
+                contentRect: screenFrame,
+                styleMask: [.borderless, .fullSizeContentView, .nonactivatingPanel],
+                backing: .buffered,
+                defer: false
+            )
 
-        p.isFloatingPanel = true
-        p.worksWhenModal = true
-        p.level = NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.maximumWindow)))
-        p.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary, .ignoresCycle]
-        p.isMovable = false
-        p.backgroundColor = .clear
-        p.isOpaque = false
-        p.hasShadow = false
-        p.titlebarAppearsTransparent = true
-        p.titleVisibility = .hidden
-        p.ignoresMouseEvents = false
-        p.hidesOnDeactivate = false
-        p.appearance = NSAppearance(named: .darkAqua)
+            p.isFloatingPanel = true
+            p.worksWhenModal = true
+            p.level = NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.maximumWindow)))
+            p.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary, .ignoresCycle]
+            p.isMovable = false
+            p.backgroundColor = .clear
+            p.isOpaque = false
+            p.hasShadow = false
+            p.titlebarAppearsTransparent = true
+            p.titleVisibility = .hidden
+            p.ignoresMouseEvents = false
+            p.hidesOnDeactivate = false
+            p.appearance = NSAppearance(named: .darkAqua)
 
-        let overlayView = EyeRestOverlayView(controller: self)
-        let hostingView = NSHostingView(rootView: overlayView)
-        hostingView.frame = screenFrame
-        hostingView.autoresizingMask = [.width, .height]
+            let overlayView = EyeRestOverlayView(controller: self)
+            let hostingView = NSHostingView(rootView: overlayView)
+            hostingView.frame = screenFrame
+            hostingView.autoresizingMask = [.width, .height]
 
-        p.contentView = hostingView
-        p.setFrame(screenFrame, display: true)
+            p.contentView = hostingView
+            p.setFrame(screenFrame, display: true)
 
-        p.alphaValue = 0
-        p.orderFrontRegardless()
+            p.alphaValue = 0
+            p.orderFrontRegardless()
+            panels.append(p)
+        }
 
         spaceChangeObserver = NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.activeSpaceDidChangeNotification,
@@ -73,18 +77,16 @@ class EyeRestOverlayWindowController: ObservableObject {
             queue: .main
         ) { [weak self] _ in
             Task { @MainActor in
-                guard let self = self, let p = self.panel, p.isVisible else { return }
-                p.orderFrontRegardless()
+                guard let self = self, !self.panels.isEmpty else { return }
+                self.panels.forEach { $0.orderFrontRegardless() }
             }
         }
 
         NSAnimationContext.runAnimationGroup { context in
             context.duration = 0.5
             context.timingFunction = CAMediaTimingFunction(name: .easeOut)
-            p.animator().alphaValue = 1
+            panels.forEach { $0.animator().alphaValue = 1 }
         }
-
-        self.panel = p
     }
 
     func dismiss() {
@@ -92,21 +94,19 @@ class EyeRestOverlayWindowController: ObservableObject {
             NSWorkspace.shared.notificationCenter.removeObserver(observer)
             spaceChangeObserver = nil
         }
-        guard let p = panel else { return }
+        let panelsToClose = panels
+        panels.removeAll()
         NSAnimationContext.runAnimationGroup({ context in
             context.duration = 0.3
             context.timingFunction = CAMediaTimingFunction(name: .easeIn)
-            p.animator().alphaValue = 0
+            panelsToClose.forEach { $0.animator().alphaValue = 0 }
         }, completionHandler: {
-            Task { @MainActor [weak self] in
-                p.orderOut(nil)
-                self?.panel = nil
-            }
+            panelsToClose.forEach { $0.orderOut(nil) }
         })
     }
 
     var isVisible: Bool {
-        panel?.isVisible ?? false
+        panels.first?.isVisible ?? false
     }
 }
 

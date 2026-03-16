@@ -270,12 +270,14 @@ class CognitiveLoadEngine: ObservableObject {
             baseline: nil
         )
 
-        let score = typingScore * ReflexConstants.typingVarianceWeight
+        // Break the chain into sub-expressions to avoid Swift type-checker timeouts
+        let typingAndError = typingScore * ReflexConstants.typingVarianceWeight
             + errorScore * ReflexConstants.errorRateWeight
-            + switchScore * ReflexConstants.appSwitchWeight
+        let switchAndJitter = switchScore * ReflexConstants.appSwitchWeight
             + jitterScore * ReflexConstants.mouseJitterWeight
-            + pauseScore * ReflexConstants.pauseFrequencyWeight
+        let pauseAndScroll = pauseScore * ReflexConstants.pauseFrequencyWeight
             + scrollScore * ReflexConstants.scrollBehaviorWeight
+        let score = typingAndError + switchAndJitter + pauseAndScroll
 
         // Apply sensitivity: 0.0 → 0.7x (low), 0.5 → 1.0x (normal), 1.0 → 1.3x (high)
         let sensitivityFactor = 0.7 + sensitivityMultiplier * 0.6

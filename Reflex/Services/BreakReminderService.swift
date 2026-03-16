@@ -46,6 +46,10 @@ class BreakReminderService: ObservableObject {
     let notificationPopup = BreakNotificationPopupController()
     let eyeRestOverlayController = EyeRestOverlayWindowController()
 
+    /// Whether the currently-active break was triggered by cognitive load monitoring.
+    /// Only cognitive-load breaks should credit `cognitiveBreaksTaken`.
+    private var activeBreakIsCognitive: Bool = false
+
     private var breakTimer: Timer?
     private var snoozeTimer: Timer?
     private var preBreakTimer: Timer?
@@ -133,6 +137,15 @@ class BreakReminderService: ObservableObject {
 
     /// Step 2: Start the actual break (fullscreen overlay with countdown)
     func startBreak(durationMinutes: Int? = nil) {
+        // Determine break type BEFORE dismissing the popup (mode + visibility reveal the trigger).
+        // A cognitive-load break: popup was visible and in .breakReminder mode.
+        // Timed / manual breaks do NOT credit cognitiveBreaksTaken.
+        if case .breakReminder = notificationPopup.mode {
+            activeBreakIsCognitive = notificationPopup.isVisible
+        } else {
+            activeBreakIsCognitive = false
+        }
+
         // Dismiss pre-break UI
         cursorFollower.dismiss()
         notificationPopup.dismiss()
@@ -184,7 +197,7 @@ class BreakReminderService: ObservableObject {
     private func completeBreak() {
         isOnBreak = false
         breaksTaken += 1
-        cognitiveBreaksTaken += 1
+        if activeBreakIsCognitive { cognitiveBreaksTaken += 1 }
         breakTimer?.invalidate()
         breakTimer = nil
 
@@ -229,7 +242,7 @@ class BreakReminderService: ObservableObject {
     func endBreakEarly() {
         isOnBreak = false
         breaksTaken += 1
-        cognitiveBreaksTaken += 1
+        if activeBreakIsCognitive { cognitiveBreaksTaken += 1 }
         breakTimer?.invalidate()
         breakTimer = nil
         showBreakOverlay = false
@@ -587,5 +600,10 @@ class BreakReminderService: ObservableObject {
         eyeRestTimer?.invalidate()
         eyeRestPreTimer?.invalidate()
         pauseReminderTimer?.invalidate()
+        // Dismiss any open windows so ghost panels don't linger (e.g. during testing)
+        overlayController.dismiss()
+        eyeRestOverlayController.dismiss()
+        notificationPopup.dismiss()
+        cursorFollower.dismiss()
     }
 }

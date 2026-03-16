@@ -28,6 +28,9 @@ class MouseBehaviorAnalyzer: ObservableObject {
             Task { @MainActor in
                 self?.windowedScrollCount = 0
                 self?.windowedDirectionChanges = 0
+                // Reset idleAccumulator so idleTime reflects only the last minute,
+                // preventing old idle periods from inflating the ratio over long sessions.
+                self?.idleAccumulator = 0
             }
         }
     }

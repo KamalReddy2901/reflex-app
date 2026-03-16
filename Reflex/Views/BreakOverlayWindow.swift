@@ -5,7 +5,8 @@ import AppKit
 
 @MainActor
 class BreakOverlayWindowController: ObservableObject {
-    private var panel: NSPanel?
+    /// One panel per connected screen so the overlay covers all displays.
+    private var panels: [NSPanel] = []
     private var spaceChangeObserver: Any?
     @Published var breakState: BreakState = .active(remaining: 300, total: 300)
     @Published var breathingEnabled: Bool = true
@@ -19,7 +20,7 @@ class BreakOverlayWindowController: ObservableObject {
     func showBreakCountdown(duration: TimeInterval = 300, breathing: Bool = true) {
         breathingEnabled = breathing
         breakState = .active(remaining: duration, total: duration)
-        if panel == nil { presentWindow() }
+        if panels.isEmpty { presentWindow() }
     }
 
     func updateCountdown(remaining: TimeInterval, total: TimeInterval) {
@@ -36,63 +37,63 @@ class BreakOverlayWindowController: ObservableObject {
     }
 
     private func presentWindow() {
-        if panel != nil { dismiss() }
+        if !panels.isEmpty { dismiss() }
 
-        guard let screen = NSScreen.main else { return }
-        let screenFrame = screen.frame
+        // Create one panel per screen so all displays are covered on multi-monitor setups.
+        for screen in NSScreen.screens {
+            let screenFrame = screen.frame
 
-        let p = NSPanel(
-            contentRect: screenFrame,
-            styleMask: [.borderless, .fullSizeContentView, .nonactivatingPanel],
-            backing: .buffered,
-            defer: false
-        )
+            let p = NSPanel(
+                contentRect: screenFrame,
+                styleMask: [.borderless, .fullSizeContentView, .nonactivatingPanel],
+                backing: .buffered,
+                defer: false
+            )
 
-        p.isFloatingPanel = true
-        p.worksWhenModal = true
-        p.level = NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.maximumWindow)))
-        p.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary, .ignoresCycle]
-        p.isMovable = false
-        p.backgroundColor = .clear
-        p.isOpaque = false
-        p.hasShadow = false
-        p.titlebarAppearsTransparent = true
-        p.titleVisibility = .hidden
-        p.ignoresMouseEvents = false
-        p.hidesOnDeactivate = false
-        p.appearance = NSAppearance(named: .darkAqua)
+            p.isFloatingPanel = true
+            p.worksWhenModal = true
+            p.level = NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.maximumWindow)))
+            p.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary, .ignoresCycle]
+            p.isMovable = false
+            p.backgroundColor = .clear
+            p.isOpaque = false
+            p.hasShadow = false
+            p.titlebarAppearsTransparent = true
+            p.titleVisibility = .hidden
+            p.ignoresMouseEvents = false
+            p.hidesOnDeactivate = false
+            p.appearance = NSAppearance(named: .darkAqua)
 
-        let overlayView = BreakOverlayFullscreen(controller: self)
-        let hostingView = NSHostingView(rootView: overlayView)
-        hostingView.frame = screenFrame
-        hostingView.autoresizingMask = [.width, .height]
+            let overlayView = BreakOverlayFullscreen(controller: self)
+            let hostingView = NSHostingView(rootView: overlayView)
+            hostingView.frame = screenFrame
+            hostingView.autoresizingMask = [.width, .height]
 
-        p.contentView = hostingView
-        p.setFrame(screenFrame, display: true)
+            p.contentView = hostingView
+            p.setFrame(screenFrame, display: true)
 
-        // Fade in
-        p.alphaValue = 0
-        p.orderFrontRegardless()
+            p.alphaValue = 0
+            p.orderFrontRegardless()
+            panels.append(p)
+        }
 
-        // Monitor space changes to stay on top even in fullscreen spaces
+        // Single space-change observer keeps all panels on top in fullscreen spaces.
         spaceChangeObserver = NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.activeSpaceDidChangeNotification,
             object: nil,
             queue: .main
         ) { [weak self] _ in
             Task { @MainActor in
-                guard let self = self, let p = self.panel, p.isVisible else { return }
-                p.orderFrontRegardless()
+                guard let self = self, !self.panels.isEmpty else { return }
+                self.panels.forEach { $0.orderFrontRegardless() }
             }
         }
 
         NSAnimationContext.runAnimationGroup { context in
             context.duration = 0.5
             context.timingFunction = CAMediaTimingFunction(name: .easeOut)
-            p.animator().alphaValue = 1
+            panels.forEach { $0.animator().alphaValue = 1 }
         }
-
-        self.panel = p
     }
 
     func dismiss() {
@@ -100,21 +101,19 @@ class BreakOverlayWindowController: ObservableObject {
             NSWorkspace.shared.notificationCenter.removeObserver(observer)
             spaceChangeObserver = nil
         }
-        guard let p = panel else { return }
+        let panelsToClose = panels
+        panels.removeAll()
         NSAnimationContext.runAnimationGroup({ context in
             context.duration = 0.3
             context.timingFunction = CAMediaTimingFunction(name: .easeIn)
-            p.animator().alphaValue = 0
+            panelsToClose.forEach { $0.animator().alphaValue = 0 }
         }, completionHandler: {
-            Task { @MainActor [weak self] in
-                p.orderOut(nil)
-                self?.panel = nil
-            }
+            panelsToClose.forEach { $0.orderOut(nil) }
         })
     }
 
     var isVisible: Bool {
-        panel?.isVisible ?? false
+        panels.first?.isVisible ?? false
     }
 }
 

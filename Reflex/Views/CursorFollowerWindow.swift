@@ -99,11 +99,12 @@ class CursorFollowerWindowController: ObservableObject {
             return event
         }
 
-        // Fallback display-linked timer at ~60fps to catch cases where
+        // Fallback display-linked timer at ~10fps to catch cases where
         // mouse events don't fire (e.g., mouse stationary but user scrolled
-        // the screen or switched spaces)
+        // the screen or switched spaces). 10fps is sufficient for position
+        // updates and avoids unnecessary CPU/GPU work at 60fps.
         let timer = DispatchSource.makeTimerSource(queue: .main)
-        timer.schedule(deadline: .now(), repeating: .milliseconds(16))
+        timer.schedule(deadline: .now(), repeating: .milliseconds(100))
         timer.setEventHandler { [weak self] in
             MainActor.assumeIsolated {
                 guard let self = self, let p = self.panel else { return }
@@ -157,6 +158,16 @@ class CursorFollowerWindowController: ObservableObject {
 
     var isVisible: Bool {
         panel?.isVisible ?? false
+    }
+
+    deinit {
+        displayTimer?.cancel()
+        if let monitor = mouseEventMonitor { NSEvent.removeMonitor(monitor) }
+        if let monitor = localMouseEventMonitor { NSEvent.removeMonitor(monitor) }
+        if let observer = spaceChangeObserver {
+            NSWorkspace.shared.notificationCenter.removeObserver(observer)
+        }
+        panel?.orderOut(nil)
     }
 }
 

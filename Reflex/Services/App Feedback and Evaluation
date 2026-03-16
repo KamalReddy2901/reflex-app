@@ -1,0 +1,281 @@
+
+# Reflex — Comprehensive Fix List
+
+---
+
+## 🔴 Critical: Build Errors (App Won't Compile)
+
+These are the root cause of all ~150 compiler errors across 7 files. The good news: they're almost entirely project-configuration problems — the logic is fine.
+
+### 1. Missing `@MainActor` on `BreakReminderService`
+**File:** `Reflex/Services/BreakReminderService.swift`  
+The class is not marked `@MainActor` but references `ReflexConstants`, `BreakOverlayWindowController`, `CursorFollowerWindowController`, `BreakNotificationPopupController`, and `EyeRestOverlayWindowController`. The compiler can't find these types, which likely means the target membership for those files is broken in the generated `.xcodeproj`. Re-running `xcodegen generate` is the primary fix, but additionally the class should be decorated `@MainActor` to match the rest of the service layer.
+
+### 2. All "Cannot find type/symbol in scope" errors are a Xcode target-membership issue
+**Files:** `CognitiveLoadEngine.swift`, `BreakReminderService.swift`, `MenuBarView.swift`, `DashboardView.swift`, `InsightsView.swift`, `KeystrokeAnalyzer.swift`, `CognitiveLoadPredictor.swift`  
+Every single "Cannot find X in scope" error — `ReflexConstants`, `CognitiveLoadLevel`, `LoadSample`, `BehaviorSnapshot`, `TypingMetrics`, `RingBuffer`, `GlassMorphicCard`, `MeshGradientBackground`, `GlassChip`, etc. — traces back to the `.xcodeproj` not including all source files in the `Reflex` target. Re-run:
+```/dev/null/terminal.sh#L1-2
+xcodegen generate
+open Reflex.xcodeproj
+```
+Then do a clean build (`Cmd+Shift+K` then `Cmd+B`).
+
+### 3. `Notification.Name.sessionShouldEnd` is declared but not found in `CognitiveLoadEngine`
+**File:** `Reflex/Services/CognitiveLoadEngine.swift` line 183  
+`sessionShouldEnd` is defined in `AppDelegate.swift`'s `Notification.Name` extension. The engine uses it but the linker can't see it — same target membership root cause, but also worth double-checking that `AppDelegate.swift` is in the target.
+
+### 4. `Notification.Name.breakEnded` not found in `BreakReminderService`
+**File:** `Reflex/Services/BreakReminderService.swift` line 201  
+Same root cause. `breakEnded` is declared in `AppDelegate.swift`.
+
+### 5. `Notification.Name.navigateToDashboardTab` not found in `MenuBarView`
+**File:** `Reflex/Views/MenuBarView.swift` line 342  
+Same root cause.
+
+### 6. `BreakNotificationPopupController.PopupMode` cases not inferred
+**Files:** `BreakReminderService.swift` lines 260, 314, 432  
+Errors like `Cannot infer contextual base in reference to member 'breakReminder'` / `'eyeRest'` / `'timedBreak'`. These resolve once the type is in scope (target membership), but can also be fixed by being explicit: `notificationPopup.mode = BreakNotificationPopupController.PopupMode.breakReminder`.
+
+### 7. `InsightsView.swift` — `[Double].average` member not found (line 217)
+**File:** `Reflex/Views/InsightsView.swift`  
+`bestFocusHour()` in `DataPersistenceService` calls `.average` on `[Double]`, and `InsightsView` does the same in `computeHourlyAverages()`. The `average` extension is defined on `Array where Element: BinaryFloatingPoint` in `Extensions.swift` — should resolve with target membership fix, but verify the extension is reachable.
+
+### 8. `InsightsView.swift` — `compactMap` on `Range<Int>` requires `SignedInteger` (line 183)
+**File:** `Reflex/Views/InsightsView.swift`  
+```reflex/Reflex/Views/InsightsView.swift#L183-186
+return (0..<7).compactMap { daysAgo in
+    let date = calendar.date(byAdding: .day, value: -(6 - daysAgo), to: .now) ?? .now
+    ...
+    return WeeklyEntry(day: name, avgLoad: avg)
+}
+```
+`(0..<7)` is a `Range<Int>`, and `compactMap` on `Range` requires `Strideable.Stride: SignedInteger`. Fix by converting to an array first: `(0..<7).map { ... }` since the closure never returns `nil` anyway — it should be `map`, not `compactMap`.
+
+### 9. `InsightsView.swift` — `calendar.date(byAdding:value:to:)` receives `Double` instead of `Int` (line 184)
+**File:** `Reflex/Views/InsightsView.swift`  
+`daysAgo` in `(0..<7).compactMap { daysAgo in ... }` will be inferred as `Double` once `compactMap` is swapped for `map` on a `Range`. The fix is to use `map` (above) so `daysAgo` stays `Int`.
+
+### 10. `InsightsView.swift` — `Cannot infer key path type` (line 233)
+**File:** `Reflex/Views/InsightsView.swift`  
+`persistenceService.bestFocusHour()` uses `hourScores.min(by: { $0.value.average < $1.value.average })?.key` — this should work once the target membership and `.average` are resolved, but may need explicit typing: `hourScores.min(by: { (a: Dictionary<Int,[Double]>.Element, b: Dictionary<Int,[Double]>.Element) in a.value.average < b.value.average })?.key`.
+
+### 11. `CognitiveLoadEngine.swift` — `Cannot infer key path type` during `finalizeCalibration` (lines 430–434)
+**File:** `Reflex/Services/CognitiveLoadEngine.swift`  
+```reflex/Reflex/Services/CognitiveLoadEngine.swift#L428-435
+let avgTypingCV = calibrationSamples.map(\.typingIntervalCV).average
+let avgBackspace = calibrationSamples.map(\.backspaceRatio).average
+...
+```
+`calibrationSamples` is `[BehaviorSnapshot]`. When `BehaviorSnapshot` is out of scope, key paths can't be resolved. Resolves with target membership. If still failing after that, switch to explicit closures: `calibrationSamples.map { $0.typingIntervalCV }.average`.
+
+### 12. `CognitiveLoadEngine.swift` — Compiler timeout on line 273
+**File:** `Reflex/Services/CognitiveLoadEngine.swift`  
+```reflex/Reflex/Services/CognitiveLoadEngine.swift#L271-280
+let score = typingScore * ReflexConstants.typingVarianceWeight
+    + errorScore * ReflexConstants.errorRateWeight
+    + switchScore * ReflexConstants.appSwitchWeight
+    + jitterScore * ReflexConstants.mouseJitterWeight
+    + pauseScore * ReflexConstants.pauseFrequencyWeight
+    + scrollScore * ReflexConstants.scrollBehaviorWeight
+```
+Swift's type checker times out on long arithmetic chains with constants. Break it into sub-expressions:
+```reflex/Reflex/Services/CognitiveLoadEngine.swift#L273-278
+let typingAndError = typingScore * ReflexConstants.typingVarianceWeight + errorScore * ReflexConstants.errorRateWeight
+let switchAndJitter = switchScore * ReflexConstants.appSwitchWeight + jitterScore * ReflexConstants.mouseJitterWeight
+let pauseAndScroll = pauseScore * ReflexConstants.pauseFrequencyWeight + scrollScore * ReflexConstants.scrollBehaviorWeight
+let score = typingAndError + switchAndJitter + pauseAndScroll
+```
+
+### 13. `CognitiveLoadEngine.swift` — `Cannot infer contextual base in reference to member 'flow'` (line 480)
+**File:** `Reflex/Services/CognitiveLoadEngine.swift`  
+In `reset()`: `loadLevel = .flow` can't infer the type when `CognitiveLoadLevel` is out of scope. Fix: `loadLevel = CognitiveLoadLevel.flow` (explicit type). Will also auto-resolve with target membership.
+
+### 14. `KeystrokeAnalyzer.swift` — `Cannot infer contextual base in reference to member 'now'` (line 95)
+**File:** `Reflex/Services/KeystrokeAnalyzer.swift`  
+`windowStart = .now` fails when `Date` is somehow ambiguous in this context. Fix by being explicit: `windowStart = Date.now`.
+
+### 15. `Color?.reflexPurple` — optional Color has no member (MenuBarView line 268)
+**File:** `Reflex/Views/MenuBarView.swift`  
+A `Color?` is used where `Color` is expected. The `reflexPurple` extension is on `Color`, not `Color?`. Ensure the variable being used isn't typed as `Color?`, or use `?? .reflexPurple` as a fallback.
+
+---
+
+## 🟠 Logic / Correctness Bugs
+
+### 16. `endBreakEarly()` increments `cognitiveBreaksTaken` unconditionally
+**File:** `Reflex/Services/BreakReminderService.swift` lines 229–237  
+`endBreakEarly()` always increments `cognitiveBreaksTaken`, even if the break was eye-rest or time-based. It should check what triggered the break (or use a separate counter) so cognitive vs. eye-rest break counts stay accurate in the session history.
+
+### 17. `completeBreak()` also increments `cognitiveBreaksTaken` unconditionally
+**File:** `Reflex/Services/BreakReminderService.swift` lines 184–202  
+Same issue as above. Non-cognitive breaks (timed, eye rest) will incorrectly inflate `cognitiveBreaksTaken`.
+
+### 18. Natural break is double-credited
+**File:** `Reflex/ReflexApp.swift` `setupBreakTriggerMonitor` + `CognitiveLoadEngine.updateActivityTracking`  
+`updateActivityTracking()` in the engine calls `continuousActiveMinutes = 0` and resets triggers when idle, AND `setupBreakTriggerMonitor` separately calls `breakService.recordNaturalBreak()` and `engine.recordBreakTaken()`. Both paths reset the engine state on idle — this can result in two resets per idle period.
+
+### 19. `breakEnded` notification causes double `recordBreakTaken()`
+**File:** `Reflex/ReflexApp.swift` lines ~246–254 and ~236–244  
+Both the `endBreakEarly` observer and the `breakEnded` observer call `self.loadEngine?.recordBreakTaken()`. Since `completeBreak()` posts `.breakEnded`, and `endBreakEarly` is called by both the overlay's end-early button AND by `completeBreak` indirectly, there's a double-credit path.
+
+### 20. `reset()` in `CognitiveLoadEngine` sets `isCalibrating = true` but doesn't restart calibration timer
+**File:** `Reflex/Services/CognitiveLoadEngine.swift` `reset()` lines 477–497  
+`reset()` sets `isCalibrating = true` and `calibrationStart = .now`, but `startEngine()` is not called — so the `updateTimer` that drives `computeLoad()` (and thus calibration sampling) keeps running from the old state. After `reset()`, the engine needs either a full `stopEngine() + startEngine()` cycle, or `reset()` should reset `calibrationStart` without touching the timer.
+
+### 21. `TrainingDataCollector` saves to CSV on `.main` but is not `@MainActor`
+**File:** `Reflex/ML/CognitiveLoadPredictor.swift`  
+`TrainingDataCollector.saveToCSV()` accesses `FileManager` and writes files, but there's no actor isolation. This is fine for now since CoreML is stubbed, but if it gets wired up, file writes should be on a background actor.
+
+### 22. `AppSwitchMonitor` window poll fires at 0.5s even when app is backgrounded
+**File:** `Reflex/Services/AppSwitchMonitor.swift`  
+`windowPollTimer` polls the AX API via `checkFocusedWindow()` every 500ms regardless of whether the user is active. This is a constant CPU/battery drain and will show up in Activity Monitor. The timer should be paused during known idle periods or throttled to 2–5 seconds.
+
+### 23. `MouseBehaviorAnalyzer` — `idleAccumulator` grows unboundedly across the session
+**File:** `Reflex/Services/MouseBehaviorAnalyzer.swift`  
+`idleAccumulator` accumulates every mouse-idle gap for the entire session lifetime. For long sessions, this number becomes meaningless and its ratio to `elapsed` approaches 1. The idle ratio metric should be windowed (e.g., last 5 minutes) to stay meaningful.
+
+### 24. `DataPersistenceService` loads sessions on `init()` but `init()` is on the main thread
+**File:** `Reflex/Services/DataPersistenceService.swift`  
+`loadSessions()` does synchronous disk I/O (reading potentially large JSON) on the main thread in `init()`. For large session histories, this will block the main thread on launch. Move to an async background task.
+
+### 25. Snooze always sends a `.breakReminder` mode popup, ignoring what was originally snoozed
+**File:** `Reflex/Services/BreakReminderService.swift` `snooze()` lines 243–264  
+If the user snoozes an eye-rest prompt, after the snooze timer fires it calls `sendBreakReminder` which shows a standard break card, not an eye rest. The original trigger type should be stored and replayed. (There is a `// Always show a standard break reminder after snooze` comment acknowledging this, but it's still a behavioral inconsistency.)
+
+---
+
+## 🟡 UX / Behavioral Issues
+
+### 26. First-launch: 15-minute cold calibration with no useful score
+**Files:** `CognitiveLoadEngine.swift`, `ReflexApp.swift`  
+The score stays at `0` (or is meaningless) for the first 15 minutes. New users see a "Calibrating... 14 min remaining" message with a flat 0 ring. Consider shipping a default baseline and refining it in the background so the app is useful from second one.
+
+### 27. The "Monitoring" toggle in Settings doesn't persist across launches
+**File:** `Reflex/Views/SettingsView.swift` + `ReflexApp.swift`  
+`monitoringEnabled` is stored in `@AppStorage`, but `initializeServices()` in `ReflexApp` calls `engine.startEngine()` unconditionally — it doesn't read `monitoringEnabled` before deciding whether to start. A user who turned off monitoring will find it re-enabled on relaunch.
+
+### 28. Pause state is stored in `UserDefaults` but also in `@AppStorage("allRemindersPaused")` — two sources of truth
+**File:** `Reflex/AppDelegate.swift` + `Reflex/ReflexApp.swift`  
+`togglePauseFromMenu()` writes `UserDefaults.standard.set(...)` directly, while `ReflexApp` uses `@AppStorage("allRemindersPaused")`. These share the same key so they'll usually be in sync, but reading from `UserDefaults.standard.bool(forKey:)` directly in `AppDelegate` while writing through `@AppStorage` in the scene is fragile. Consolidate to a single `@AppStorage` or a shared service.
+
+### 29. The right-click menu reads `UserDefaults.standard.bool(forKey: "allRemindersPaused")` which can lag
+**File:** `Reflex/AppDelegate.swift` `setupStatusItemRightClickMenu()`  
+The pause title in the right-click menu is read at the moment of the right-click, which is correct. But if the user toggles pause via the menu bar button (not right-click), the value is updated via `@AppStorage` — which writes synchronously — so this should be fine. Still, see issue #28.
+
+### 30. `BreakOverlayWindow` doesn't handle multiple screens
+**File:** `Reflex/Views/BreakOverlayWindow.swift` `presentWindow()`  
+The fullscreen overlay only covers `NSScreen.main`. On multi-monitor setups, other screens remain visible, which undermines the break experience and lets users ignore it by glancing at a second screen.
+
+### 31. Eye rest overlay only covers `NSScreen.main`
+**File:** `Reflex/Views/EyeRestOverlayWindow.swift`  
+Same issue as #30. The eye rest fullscreen should cover all connected screens.
+
+### 32. The cursor-follower `displayTimer` fires at 60fps continuously even when the mouse is stationary
+**File:** `Reflex/Views/CursorFollowerWindow.swift` lines 104–113  
+A 60Hz `DispatchSourceTimer` runs for the entire countdown duration (30s). That's ~1800 timer callbacks just to re-read `NSEvent.mouseLocation`. The event-driven monitors (global + local) already handle movement. The fallback timer should run at 5–10fps, not 60fps.
+
+### 33. `BreakNotificationPopupView` — countdown auto-dismisses but doesn't record a skip
+**File:** `Reflex/Services/BreakReminderService.swift` `sendBreakReminder()` (lines 95–132)  
+When the pre-break countdown reaches 0 and the user has neither taken nor skipped the break, the popup auto-triggers `startBreak()`. But if the popup was dismissed by the `breakDismissWorkItem` timeout (auto-dismiss after 30s if no interaction), no action is recorded — `consecutiveSkips` is not incremented. This means "ignoring" a prompt is treated differently than explicitly skipping it.
+
+### 34. `SettingsView` — `showInDock` and `launchAtLogin` toggles are UI only — never implemented
+**File:** `Reflex/Views/SettingsView.swift` (lines with `@AppStorage("showInDock")` and `@AppStorage("launchAtLogin")`)  
+Both settings are stored in `@AppStorage` but there is no code that actually hides/shows the Dock icon or registers a login item. These need to be wired up with `SMAppService.mainApp.register()` (for login item) and toggling `NSApp.setActivationPolicy(.accessory)` / `.regular` (for Dock visibility).
+
+### 35. Dashboard window opens but doesn't come to front from fullscreen apps reliably
+**File:** `Reflex/Views/MenuBarView.swift` `activateAndOpenDashboard()`  
+The current workaround (close key window, activate, 0.15s delay, open, 0.15s delay, search by title, `makeKeyAndOrderFront`) is brittle. It depends on hardcoded timing and the window title string `"Reflex Beta Dashboard"`. Use `NSWindowController` or store a reference to the window for reliable focus.
+
+---
+
+## 🔵 Code Quality / Architecture Issues
+
+### 36. `ReflexApp.swift` is doing too much — 445 lines of app-level setup
+**File:** `Reflex/ReflexApp.swift`  
+`setupBreakNotificationObservers()` and `setupBreakTriggerMonitor()` are 250+ lines of setup logic embedded in the app struct. This should be extracted into a coordinator or app-level service class to keep `ReflexApp` small.
+
+### 37. `NotificationCenter` observers in `ReflexApp` are never removed
+**File:** `Reflex/ReflexApp.swift`  
+`addObserver(forName:)` calls in `setupBreakNotificationObservers()` use the block-based API and capture `[weak self]` — but the returned token objects are never stored or removed. These will fire for the lifetime of the process (fine for a single-lifecycle app) but is a leak if `ReflexApp` were ever re-initialized.
+
+### 38. `CursorFollowerWindowController.deinit` is missing — display timer is never cleaned up
+**File:** `Reflex/Views/CursorFollowerWindow.swift`  
+`displayTimer` is a `DispatchSourceTimer`. If the window controller is deallocated without calling `dismiss()`, the timer keeps running. Add a `deinit` that cancels the timer and cleans up monitors.
+
+### 39. `BreakReminderService.deinit` invalidates timers but doesn't dismiss open windows
+**File:** `Reflex/Services/BreakReminderService.swift` `deinit`  
+On teardown, open `NSPanel` windows (overlay, cursor follower, popup) are not explicitly dismissed. This can leave ghost windows on screen during testing or hot-reload cycles.
+
+### 40. `HeuristicPredictor` in `CognitiveLoadPredictor.swift` duplicates the scoring logic from `CognitiveLoadEngine.computeHeuristicScore`
+**Files:** `Reflex/ML/CognitiveLoadPredictor.swift`, `Reflex/Services/CognitiveLoadEngine.swift`  
+`HeuristicPredictor.predictScore` and `CognitiveLoadEngine.computeHeuristicScore` are two nearly-identical implementations of the same algorithm. `CognitiveLoadEngine` doesn't use `HeuristicPredictor` at all — it has its own implementation. These should be unified: `CognitiveLoadEngine` should delegate to `HeuristicPredictor`.
+
+### 41. `DataPersistenceService.bestFocusHour()` uses `.average` on `[Double]` values inside `hourScores`
+**File:** `Reflex/Services/DataPersistenceService.swift`  
+`hourScores.min(by: { $0.value.average < $1.value.average })` — this finds the hour with the *lowest* average load and calls it "best focus hour." The intent is correct (lower load = more flow), but calling it `bestFocusHour` while it searches for *minimum* load is non-obvious and could be inverted. Add a comment or rename the variable to `lowestLoadHour` for clarity.
+
+### 42. `AppSwitchMonitor.countRapidSwitchBursts()` is O(n²)
+**File:** `Reflex/Services/AppSwitchMonitor.swift`  
+```reflex/Reflex/Services/AppSwitchMonitor.swift#L134-142
+for i in 0..<switchTimestamps.count {
+    let switchesInWindow = switchTimestamps.filter { ... }.count
+    ...
+}
+```
+For every timestamp, it re-scans the entire array with `filter`. For `n` switches in the window, this is O(n²). Use a sliding window pointer instead.
+
+### 43. `FeatureExtractor` and `HeuristicPredictor` are unused at runtime
+**Files:** `Reflex/ML/FeatureExtractor.swift`, `Reflex/ML/CognitiveLoadPredictor.swift`  
+`FeatureExtractor.createMLFeatureProvider` and `HeuristicPredictor` are never called anywhere in the app's live code path. `TrainingDataCollector` is also never instantiated. These are dead code — either wire them up or mark them with `// MARK: - Future Use` and add a TODO.
+
+### 44. `EventMonitorService` wires callbacks but `onKeyUp` is never used
+**File:** `Reflex/Services/EventMonitorService.swift`  
+`onKeyUp` is declared and populated on keyUp events, but no subscriber ever sets `eventMonitor.onKeyUp`. It's dead.
+
+### 45. `loadEngine` in `ReflexApp` is `@State private var loadEngine: CognitiveLoadEngine?` — optional causes `if let engine` branches everywhere
+**File:** `Reflex/ReflexApp.swift`  
+`loadEngine` is optional because it's initialized asynchronously in `initializeServices()`, but once initialized it never becomes `nil` again. This forces every consumer to unwrap it with `if let engine = loadEngine`. Use `@StateObject` with a dedicated initializer, or initialize it eagerly in `init()` like the other services, to eliminate the optional.
+
+---
+
+## ⚪ Minor / Polish
+
+### 46. `MenuBarView` — "Test break reminder" and "Test eye rest" buttons are exposed in the production UI
+**File:** `Reflex/Views/MenuBarView.swift`  
+The `bell.badge` and `eye` icon buttons in the bottom action bar are development test buttons that force break/eye-rest flows. These should be hidden in release builds with `#if DEBUG` guards.
+
+### 47. `AppDelegate.setupStatusItemRightClickMenu` uses `String(describing: type(of: window)).contains("NSStatusBarWindow")` to detect the status bar
+**File:** `Reflex/AppDelegate.swift`  
+This is a private API class name check. It could break in future macOS versions. A safer approach is to set a custom `identifier` on the status bar window and check that.
+
+### 48. `InsightsView` — hour heatmap uses `LazyVGrid` with 12 columns for 24 hours, wrapping to 2 rows
+**File:** `Reflex/Views/InsightsView.swift`  
+This works visually but there's no label clarifying which row is AM vs PM. The grid should include row headers (`AM` / `PM`) or a legend.
+
+### 49. `SessionHistoryView` — `exportData()` opens the CSV file directly with `NSWorkspace.shared.open(url)` with no user confirmation
+**File:** `Reflex/Views/SessionHistoryView.swift`  
+macOS convention for file export is an `NSSavePanel` or at minimum a "Reveal in Finder" button. Silently opening a file in the default CSV app is surprising.
+
+### 50. `CognitiveLoadEngine.generateSuggestion()` uses emoji strings directly
+**File:** `Reflex/Services/CognitiveLoadEngine.swift`  
+`"⚠️ \(continuousActiveMinutes) min..."` hard-codes emoji in suggestion strings. This makes localization harder later and can render inconsistently across macOS versions. Suggestions should use `Image(systemName:)` in the UI layer instead.
+
+### 51. `BreakReminderService.sessionDuration` and `focusTimeFormatted` use string-based duration formatting instead of `Duration` API
+**File:** `Reflex/Services/BreakReminderService.swift` lines 561–580  
+macOS 13+ provides `Duration.formatted()`. The existing manual string-building works but is unnecessarily verbose.
+
+### 52. `DataPersistenceService` stores all sessions in a single `sessions.json` file
+**File:** `Reflex/Services/DataPersistenceService.swift`  
+As sessions accumulate over months, the single JSON blob grows unboundedly. Each `saveSessions()` call re-encodes and re-writes the entire history. Sessions should be stored per-file (one JSON per session) and indexed by a lightweight manifest, or migrated to a proper store (CoreData or SQLite).
+
+---
+
+That's **52 issues** total:
+- **15 build errors** (critical, mostly one root cause)
+- **10 logic/correctness bugs**
+- **10 UX/behavioral issues**
+- **10 code quality/architecture issues**
+- **7 minor/polish items**
+
+The single biggest bang-for-buck fix is running `xcodegen generate` + clean build — that alone should eliminate ~90% of the compiler errors. After that, issues #16–#19 (break counting double-credits) and #27 (monitoring toggle not persisting) are the most user-impactful logic bugs to tackle. but Fix ALL of them.
+

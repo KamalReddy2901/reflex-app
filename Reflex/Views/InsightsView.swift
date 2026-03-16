@@ -153,17 +153,47 @@ struct InsightsView: View {
     private var hourHeatmap: some View {
         let hourData = computeHourlyAverages()
 
-        return LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 2), count: 12), spacing: 2) {
-            ForEach(0..<24, id: \.self) { hour in
-                let avg = hourData[hour] ?? 0
-                VStack(spacing: 2) {
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(Color.loadColor(for: Int(avg)).opacity(avg > 0 ? 0.6 : 0.1))
-                        .frame(height: 30)
-
-                    Text("\(hour)")
-                        .font(.system(size: 8))
-                        .foregroundColor(.white.opacity(0.4))
+        return VStack(alignment: .leading, spacing: 6) {
+            // AM row (hours 0–11)
+            HStack(alignment: .top, spacing: 4) {
+                Text("AM")
+                    .font(.system(size: 9, weight: .medium))
+                    .foregroundColor(.white.opacity(0.5))
+                    .frame(width: 18, alignment: .leading)
+                    .padding(.top, 8)
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 2), count: 12), spacing: 2) {
+                    ForEach(0..<12, id: \.self) { hour in
+                        let avg = hourData[hour] ?? 0
+                        VStack(spacing: 2) {
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(Color.loadColor(for: Int(avg)).opacity(avg > 0 ? 0.6 : 0.1))
+                                .frame(height: 30)
+                            Text("\(hour == 0 ? 12 : hour)")
+                                .font(.system(size: 8))
+                                .foregroundColor(.white.opacity(0.4))
+                        }
+                    }
+                }
+            }
+            // PM row (hours 12–23)
+            HStack(alignment: .top, spacing: 4) {
+                Text("PM")
+                    .font(.system(size: 9, weight: .medium))
+                    .foregroundColor(.white.opacity(0.5))
+                    .frame(width: 18, alignment: .leading)
+                    .padding(.top, 8)
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 2), count: 12), spacing: 2) {
+                    ForEach(12..<24, id: \.self) { hour in
+                        let avg = hourData[hour] ?? 0
+                        VStack(spacing: 2) {
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(Color.loadColor(for: Int(avg)).opacity(avg > 0 ? 0.6 : 0.1))
+                                .frame(height: 30)
+                            Text("\(hour == 12 ? 12 : hour - 12)")
+                                .font(.system(size: 8))
+                                .foregroundColor(.white.opacity(0.4))
+                        }
+                    }
                 }
             }
         }
@@ -180,7 +210,7 @@ struct InsightsView: View {
         let calendar = Calendar.current
         let dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
-        return (0..<7).compactMap { daysAgo in
+        return (0..<7).map { daysAgo in
             let date = calendar.date(byAdding: .day, value: -(6 - daysAgo), to: .now) ?? .now
             let dayStart = calendar.startOfDay(for: date)
             let dayEnd = calendar.date(byAdding: .day, value: 1, to: dayStart) ?? .now

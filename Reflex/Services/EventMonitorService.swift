@@ -10,6 +10,8 @@ class EventMonitorService: ObservableObject {
 
     // Callbacks for analyzers
     var onKeyDown: ((Date) -> Void)?
+    /// Key-up events are captured but not currently consumed by any analyzer.
+    /// Reserved for future use (e.g. hold-duration metrics).
     var onKeyUp: ((Date) -> Void)?
     var onBackspace: ((Date) -> Void)?
     var onMouseMoved: ((CGPoint, Date) -> Void)?

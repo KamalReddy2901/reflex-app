@@ -68,8 +68,23 @@ struct SessionHistoryView: View {
     }
 
     private func exportData() {
-        if let url = persistenceService.exportToCSV() {
-            NSWorkspace.shared.open(url)
+        guard let tempURL = persistenceService.exportToCSV() else { return }
+        let savePanel = NSSavePanel()
+        savePanel.nameFieldStringValue = "reflex_export.csv"
+        if #available(macOS 12.0, *) {
+            savePanel.allowedContentTypes = [.commaSeparatedText]
+        } else {
+            savePanel.allowedFileTypes = ["csv"]
+        }
+        savePanel.begin { response in
+            guard response == .OK, let destination = savePanel.url else {
+                try? FileManager.default.removeItem(at: tempURL)
+                return
+            }
+            // Overwrite if the user chose an existing file
+            try? FileManager.default.removeItem(at: destination)
+            try? FileManager.default.copyItem(at: tempURL, to: destination)
+            try? FileManager.default.removeItem(at: tempURL)
         }
     }
 }

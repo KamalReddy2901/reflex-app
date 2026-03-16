@@ -188,6 +188,7 @@ struct MenuBarView: View {
 
                 Spacer()
 
+                #if DEBUG
                 Button(action: {
                     // Dismiss any existing prompt first, then trigger break reminder
                     breakService.dismissAllPrompts()
@@ -216,6 +217,7 @@ struct MenuBarView: View {
                 }
                 .buttonStyle(.plain)
                 .help("Test eye rest")
+                #endif
 
                 Menu {
                     Button("2 minutes") { breakService.startBreak(durationMinutes: 2) }

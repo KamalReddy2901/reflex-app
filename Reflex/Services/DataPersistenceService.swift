@@ -9,8 +9,13 @@ class DataPersistenceService: ObservableObject {
     private var autoSaveTimer: Timer?
 
     init() {
-        loadSessions()
         startAutoSaveTimer()
+        // Defer disk I/O off the main thread to avoid blocking the UI on startup.
+        // Sessions are typically small but can grow over months of daily use.
+        Task { [weak self] in
+            guard let self else { return }
+            await self.loadSessionsAsync()
+        }
     }
 
     deinit {
@@ -104,6 +109,11 @@ class DataPersistenceService: ObservableObject {
     }
 
     private func saveSessions() {
+        // Cap session history to last 500 sessions to prevent the JSON file
+        // from growing unboundedly over months of daily use.
+        if sessions.count > 500 {
+            sessions.removeFirst(sessions.count - 500)
+        }
         let directory = getSessionsDirectory()
         do {
             try fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
@@ -128,41 +138,49 @@ class DataPersistenceService: ObservableObject {
         }
     }
 
-    private func loadSessions() {
+    private func loadSessionsAsync() async {
         let directory = getSessionsDirectory()
-        let url = directory.appendingPathComponent("sessions.json")
-        
-        do {
-            let data = try Data(contentsOf: url)
-            sessions = try JSONDecoder().decode([SessionData].self, from: data)
-        } catch {
-            print("Failed to load sessions or file doesn't exist: \(error)")
-            sessions = []
+        // Perform disk I/O off the main thread
+        let result: ([SessionData], SessionData?) = await Task.detached(priority: .userInitiated) {
+            let url = directory.appendingPathComponent("sessions.json")
+            var loadedSessions: [SessionData] = []
+            if let data = try? Data(contentsOf: url),
+               let decoded = try? JSONDecoder().decode([SessionData].self, from: data) {
+                loadedSessions = decoded
+            }
+
+            // Recover a crash-interrupted session if one exists
+            let currentUrl = directory.appendingPathComponent("current_session.json")
+            var recovered: SessionData? = nil
+            if let data = try? Data(contentsOf: currentUrl),
+               var loadedCurrent = try? JSONDecoder().decode(SessionData.self, from: data) {
+                let maxReasonableDuration: TimeInterval = 8 * 3600
+                let lastSampleTime = loadedCurrent.loadSamples.last?.timestamp
+                let naturalEnd = lastSampleTime ?? loadedCurrent.startTime
+                let elapsed = Date.now.timeIntervalSince(loadedCurrent.startTime)
+                if elapsed > maxReasonableDuration {
+                    loadedCurrent.endTime = naturalEnd
+                } else {
+                    loadedCurrent.endTime = .now
+                }
+                if !loadedCurrent.loadSamples.isEmpty {
+                    loadedCurrent.averageLoad = Double(loadedCurrent.loadSamples.map(\.score).reduce(0, +)) / Double(loadedCurrent.loadSamples.count)
+                    loadedCurrent.peakLoad = loadedCurrent.loadSamples.map(\.score).max() ?? 0
+                }
+                recovered = loadedCurrent
+                try? FileManager.default.removeItem(at: currentUrl)
+            }
+            return (loadedSessions, recovered)
+        }.value
+
+        // Apply on MainActor (self is @MainActor so this resumes here)
+        var allSessions = result.0
+        if let recoveredSession = result.1 {
+            allSessions.append(recoveredSession)
         }
-        
-        let currentUrl = directory.appendingPathComponent("current_session.json")
-        if let data = try? Data(contentsOf: currentUrl),
-           var loadedCurrent = try? JSONDecoder().decode(SessionData.self, from: data) {
-            // End the recovered session.
-            // Cap the end time using the last load sample timestamp to avoid
-            // multi-hour "ghost sessions" caused by sleep/lock without proper session end.
-            let maxReasonableDuration: TimeInterval = 8 * 3600 // 8 hours
-            let lastSampleTime = loadedCurrent.loadSamples.last?.timestamp
-            let naturalEnd = lastSampleTime ?? loadedCurrent.startTime
-            let elapsed = Date.now.timeIntervalSince(loadedCurrent.startTime)
-            if elapsed > maxReasonableDuration {
-                // Use the last known active timestamp to avoid inflated durations
-                loadedCurrent.endTime = naturalEnd
-            } else {
-                loadedCurrent.endTime = .now
-            }
-            if !loadedCurrent.loadSamples.isEmpty {
-                loadedCurrent.averageLoad = Double(loadedCurrent.loadSamples.map(\.score).reduce(0, +)) / Double(loadedCurrent.loadSamples.count)
-                loadedCurrent.peakLoad = loadedCurrent.loadSamples.map(\.score).max() ?? 0
-            }
-            sessions.append(loadedCurrent)
+        self.sessions = allSessions
+        if result.1 != nil {
             saveSessions()
-            try? fileManager.removeItem(at: currentUrl)
         }
     }
 
@@ -188,6 +206,8 @@ class DataPersistenceService: ObservableObject {
                 hourScores[hour, default: []].append(Double(sample.score))
             }
         }
+        // Find the hour with the LOWEST average load — that's when the user is
+        // most likely in a Flow state (low load = deep, effortless focus).
         return hourScores.min(by: { $0.value.average < $1.value.average })?.key
     }
 

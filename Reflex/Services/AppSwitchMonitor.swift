@@ -45,7 +45,8 @@ class AppSwitchMonitor: ObservableObject {
 
         // Poll focused window title to detect window switches within the same app
         // (e.g., switching between browser windows across desktops)
-        windowPollTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
+        // 2 s interval keeps AX API cost low while still catching most manual switches.
+        windowPollTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] _ in
             Task { @MainActor in
                 self?.checkFocusedWindow()
             }
@@ -142,12 +143,17 @@ class AppSwitchMonitor: ObservableObject {
 
         var bursts = 0
         let window = ReflexConstants.rapidSwitchWindow
-
-        for i in 0..<switchTimestamps.count {
-            let windowEnd = switchTimestamps[i].addingTimeInterval(window)
-            let switchesInWindow = switchTimestamps.filter {
-                $0 >= switchTimestamps[i] && $0 <= windowEnd
-            }.count
+        // O(n) two-pointer sliding window: switchTimestamps is always in
+        // chronological order (appended in order, pruned from the front).
+        var right = 0
+        for left in 0..<switchTimestamps.count {
+            right = max(right, left)  // ensure right never falls behind left
+            let windowEnd = switchTimestamps[left].addingTimeInterval(window)
+            // Advance right to include all timestamps within the forward window
+            while right < switchTimestamps.count - 1 && switchTimestamps[right + 1] <= windowEnd {
+                right += 1
+            }
+            let switchesInWindow = right - left + 1
             if switchesInWindow >= ReflexConstants.rapidSwitchThreshold {
                 bursts += 1
             }
